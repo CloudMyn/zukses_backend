@@ -1,0 +1,4 @@
+include:
+  - project: 'pbkm/infra-pbkm'
+    ref: master
+    file: '/gitlab-ci/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/.gitlab-ci.yml'
