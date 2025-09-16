@@ -34,6 +34,7 @@ $router->post('/v1/otp-verify', 'OtpController@verifyOtpWithContact');
 
 // $router->get('/v1/auth/verifikasi-email', 'UsersController@verifikasi');
 $router->post('/v1/auth/login', 'UsersController@login');
+$router->post('/v1/auth/login/admin', 'AdminsController@login');
 $router->post('/v1/auth/login-google', 'UsersController@loginWithGoogle');
 $router->get('/v1/auth/google', 'UsersController@redirectToGoogle');
 $router->get('/v1/auth/google/callback', 'UsersController@handleGoogleCallback');
@@ -51,6 +52,7 @@ $router->get('/v1/province', 'MasterProvinceController@list');
 $router->post('/v1/otp-verify/{user_id}', 'OtpController@verifyOtp');
 $router->post('/v1/send-email/{user_id}', 'EmailController@sendOTP');
 $router->post('/v1/auth/login-otp', 'AuthController@login');
+$router->post('/v1/auth/login-otp-admin', 'AuthController@loginAdmin');
 // $router->post('/v1/auth/register', 'AuthController@register');
 // $router->post('/v1/otp/{user_id}/request', 'OtpController@requestOTP');
 // $router->post('/v1/otp/{user_id}/request-email', 'EmailController@sendOTPEmail');
@@ -90,58 +92,10 @@ $router->group(['prefix' => 'v1/master'], function () use ($router) {
     });
 });
 
+$router->get('v1/fees', 'ServiceFeeController@getSettings');
+
+
 $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () use ($router) {
-
-    $router->group(['prefix' => 'master'], function () use ($router) {
-        $router->group(['prefix' => 'province'], function () use ($router) {
-            // $router->get('/', 'MasterProvinceController@index');
-            $router->post('/', 'MasterProvinceController@create');
-            $router->post('/{id}', 'MasterProvinceController@update');
-            $router->delete('/{id}', 'MasterProvinceController@delete');
-        });
-
-        $router->group(['prefix' => 'city'], function () use ($router) {
-            // $router->get('/', 'MasterCityController@index');
-            $router->post('/', 'MasterCityController@create');
-            $router->post('/{id}', 'MasterCityController@update');
-            $router->delete('/{id}', 'MasterCityController@delete');
-        });
-
-        $router->group(['prefix' => 'subdistrict'], function () use ($router) {
-            // $router->get('/', 'MasterSubdistrictController@index');
-            $router->post('/', 'MasterSubdistrictController@create');
-            $router->post('/{id}', 'MasterSubdistrictController@update');
-            $router->delete('/{id}', 'MasterSubdistrictController@delete');
-        });
-
-        $router->group(['prefix' => 'postal_code'], function () use ($router) {
-            // $router->get('/', 'MasterPostalCodeController@index');
-            $router->post('/', 'MasterPostalCodeController@create');
-            $router->post('/{id}', 'MasterPostalCodeController@update');
-            $router->delete('/{id}', 'MasterPostalCodeController@delete');
-        });
-
-        $router->group(['prefix' => 'polygon'], function () use ($router) {
-            // $router->get('/check_coordinate', 'MasterSubdistrictPolygonController@check_coordinate');
-            $router->post('/validate_coordinate', 'MasterSubdistrictPolygonController@validate_coordinate');
-        });
-
-        $router->group(['prefix' => 'status'], function () use ($router) {
-            // $router->get('/', 'MasterStatusController@index');
-            $router->post('/', 'MasterStatusController@create');
-            $router->post('/{id}', 'MasterStatusController@update');
-            $router->delete('/{id}', 'MasterStatusController@delete');
-        });
-    });
-
-    $router->group(['prefix' => 'category'], function () use ($router) {
-        $router->get('/', 'ProductCategoryController@index');
-        $router->get('/show', 'ProductCategoryController@show');
-        $router->post('/', 'ProductCategoryController@create');
-        $router->post('/{id}', 'ProductCategoryController@update');
-        $router->delete('/{id}', 'ProductCategoryController@delete');
-        $router->get('/list', 'ProductCategoryController@list');
-    });
 
     $router->group(['prefix' => 'product'], function () use ($router) {
         // $router->get('/', 'ProductController@index');
@@ -163,24 +117,7 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () us
         // $router->delete('/{id}', 'ProductController@delete');
     });
 
-    $router->group(['prefix' => 'banners'], function () use ($router) {
-        // GET /api/banners - Get all banners
-        // POST /api/banners - Create a new banner
-        // Note: For file uploads in Lumen, PUT/PATCH might not work out of the box.
-        // It's often easier to use POST for updates involving files.
-        $router->post('/', 'BannerController@store');
-        $router->get('/list', 'BannerController@list');
 
-        // GET /api/banners/{id} - Get a single banner
-        $router->get('/{id}', 'BannerController@show');
-
-        // POST /api/banners/{id} - Update a banner (using POST for file upload compatibility)
-        $router->post('/{id}', 'BannerController@update');
-        $router->post('/{id}/active', 'BannerController@isActive');
-
-        // DELETE /api/banners/{id} - Delete a banner
-        $router->delete('/{id}', 'BannerController@destroy');
-    });
 
     //user role
     $router->get('/users-role', 'UsersRoleController@index');
@@ -315,6 +252,102 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () us
         $router->get('/', 'UsersController@index');
         $router->delete('/{id}', 'UsersController@destroy');
     });
-
     $router->get('customer', 'CustomerController@getCustomers');
+
+    $router->get('service-fee', 'ServiceFeeController@index');
 });
+
+
+$router->group(['prefix' => 'v1', 'middleware' => 'check-admin'], function () use ($router) {
+    $router->group(['prefix' => 'master'], function () use ($router) {
+        $router->group(['prefix' => 'province'], function () use ($router) {
+            // $router->get('/', 'MasterProvinceController@index');
+            $router->post('/', 'MasterProvinceController@create');
+            $router->post('/{id}', 'MasterProvinceController@update');
+            $router->delete('/{id}', 'MasterProvinceController@delete');
+        });
+
+        $router->group(['prefix' => 'city'], function () use ($router) {
+            // $router->get('/', 'MasterCityController@index');
+            $router->post('/', 'MasterCityController@create');
+            $router->post('/{id}', 'MasterCityController@update');
+            $router->delete('/{id}', 'MasterCityController@delete');
+        });
+
+        $router->group(['prefix' => 'subdistrict'], function () use ($router) {
+            // $router->get('/', 'MasterSubdistrictController@index');
+            $router->post('/', 'MasterSubdistrictController@create');
+            $router->post('/{id}', 'MasterSubdistrictController@update');
+            $router->delete('/{id}', 'MasterSubdistrictController@delete');
+        });
+
+        $router->group(['prefix' => 'postal_code'], function () use ($router) {
+            // $router->get('/', 'MasterPostalCodeController@index');
+            $router->post('/', 'MasterPostalCodeController@create');
+            $router->post('/{id}', 'MasterPostalCodeController@update');
+            $router->delete('/{id}', 'MasterPostalCodeController@delete');
+        });
+
+        $router->group(['prefix' => 'polygon'], function () use ($router) {
+            // $router->get('/check_coordinate', 'MasterSubdistrictPolygonController@check_coordinate');
+            $router->post('/validate_coordinate', 'MasterSubdistrictPolygonController@validate_coordinate');
+        });
+
+        $router->group(['prefix' => 'status'], function () use ($router) {
+            // $router->get('/', 'MasterStatusController@index');
+            $router->post('/', 'MasterStatusController@create');
+            $router->post('/{id}', 'MasterStatusController@update');
+            $router->delete('/{id}', 'MasterStatusController@delete');
+        });
+    });
+
+    $router->group(['prefix' => 'category'], function () use ($router) {
+        $router->get('/', 'ProductCategoryController@index');
+        $router->get('/show', 'ProductCategoryController@show');
+        $router->post('/', 'ProductCategoryController@create');
+        $router->post('/{id}', 'ProductCategoryController@update');
+        $router->delete('/{id}', 'ProductCategoryController@delete');
+        $router->get('/list', 'ProductCategoryController@list');
+    });
+
+    $router->group(['prefix' => 'banners'], function () use ($router) {
+        // GET /api/banners - Get all banners
+        // POST /api/banners - Create a new banner
+        // Note: For file uploads in Lumen, PUT/PATCH might not work out of the box.
+        // It's often easier to use POST for updates involving files.
+        $router->post('/', 'BannerController@store');
+        $router->get('/list', 'BannerController@list');
+
+        // GET /api/banners/{id} - Get a single banner
+        $router->get('/{id}', 'BannerController@show');
+
+        // POST /api/banners/{id} - Update a banner (using POST for file upload compatibility)
+        $router->post('/{id}', 'BannerController@update');
+        $router->post('/{id}/active', 'BannerController@isActive');
+
+        // DELETE /api/banners/{id} - Delete a banner
+        $router->delete('/{id}', 'BannerController@destroy');
+    });
+
+    $router->group(['prefix' => 'admin'], function () use ($router) {
+        $router->post('/', 'AdminsController@register');
+        $router->post('/{id}', 'AdminsController@edit');
+        $router->post('/{id}/update-status', 'AdminsController@updateStatus');
+        $router->get('/', 'AdminsController@index');
+        $router->delete('/{id}', 'AdminsController@destroy');
+    });
+
+    $router->post('/fees/update', 'ServiceFeeController@updateSettings');
+    $router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
+    $router->get('courier-service', 'CourierController@listCourier');
+    $router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
+});
+$router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
+$router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
+$router->get('courier-service', 'CourierController@listCourier');
+
+// Contoh untuk Lumen di routes/web.php
+$router->get('orders-items/by-seller/{order_id}/{seller_id}', 'OrderController@showProductBySeller');
+
+// Contoh untuk Laravel di routes/api.php
+// Route::get('/orders/by-seller/{orderIdentifier}', [App\Http\Controllers\OrderController::class, 'showGroupedBySeller']);

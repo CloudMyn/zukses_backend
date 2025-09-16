@@ -26,11 +26,11 @@ class BannerController extends Controller
     public function index(Request $request)
     {
 
-        $query = Banner::join('users', 'users.id', '=', 'banners.user_id')
+        $query = Banner::join('admins', 'admins.id', '=', 'banners.admin_id')
             ->select(
                 'banners.*',
-                'users.name'
-            )->where('is_active', 1)
+                'admins.name'
+            )->where('banners.is_active', 1)
             ->orderBy('order', 'asc')->get();
 
 
@@ -49,10 +49,10 @@ class BannerController extends Controller
         $search    = $request->get('search');       // kata kunci pencarian
         $is_active = $request->get('is_active');    // filter status aktif
 
-        $query = Banner::join('users', 'users.id', '=', 'banners.user_id')
+        $query = Banner::join('admins', 'admins.id', '=', 'banners.admin_id')
             ->select(
                 'banners.*',
-                'users.name'
+                'admins.name'
             )
             ->orderBy('order', 'asc');
 
@@ -61,7 +61,7 @@ class BannerController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('banners.title', 'like', "%{$search}%")
                     ->orWhere('banners.description', 'like', "%{$search}%")
-                    ->orWhere('users.name', 'like', "%{$search}%");
+                    ->orWhere('admins.name', 'like', "%{$search}%");
             });
         }
 
@@ -116,7 +116,7 @@ class BannerController extends Controller
         }
 
         $data = $request->except('image');
-        $data['user_id'] = Auth::id();
+        $data['admin_id'] = Auth::id();
         if ($request->hasFile('image')) {
             $fileName = 'banner-' . time() . '.webp';
             // Asumsikan utilityService->convertImageToWebp ada dan berfungsi
@@ -182,7 +182,7 @@ class BannerController extends Controller
         }
 
         $data = $request->except('image');
-        $data['user_id'] = Auth::id();
+        $data['admin_id'] = Auth::id();
         if ($request->hasFile('image')) {
             // Hapus gambar lama dari Minio jika ada
             if ($banner->image_url) {
@@ -213,7 +213,7 @@ class BannerController extends Controller
         $banner = Banner::find($id);
 
         $banner->is_active = $request->is_active;
-        $banner->user_id = Auth::id();
+        $banner->admin_id = Auth::id();
 
         $banner->save();
 

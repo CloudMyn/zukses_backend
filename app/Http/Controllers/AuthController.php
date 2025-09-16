@@ -136,6 +136,28 @@ class AuthController extends Controller
 
         return $this->utilityService->is200ResponseWithData("OTP berhasil dikirim", $user->id);
     }
+    public function loginAdmin(Request $request)
+    {
+        $user = DB::table('admins')
+            ->where(function ($query) use ($request) {
+                $query->where('email', $request->email_whatsapp)
+                    ->orWhere('whatsapp', $request->email_whatsapp);
+            })
+            ->first();
+
+        if (!$user) {
+            return $this->utilityService->is422Response('Akun belum terdaftar');
+        }
+        // Jika ditemukan, kirim OTP ke WhatsApp
+
+        if (filter_var($request->email_whatsapp, FILTER_VALIDATE_EMAIL)) {
+            $this->sendOTP($request, $request->email_whatsapp, $user->name, $user->id);
+        } else {
+            $this->sendOTPWhatsapp($request, $user->whatsapp, $user->id);
+        }
+
+        return $this->utilityService->is200ResponseWithData("OTP berhasil dikirim", $user->id);
+    }
 
 
     public function register(Request $request)

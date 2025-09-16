@@ -32,6 +32,15 @@ class UtilityService
             'data' => $data
         ], 200));
     }
+    public function is200ResponseWithDataAndSummary($responseMessage, $data, $summary)
+    {
+        throw new HttpResponseException(response()->json([
+            'status' => 'success',
+            'message' => $responseMessage,
+            'data' => $data,
+            'summary' => $summary,
+        ], 200));
+    }
 
     public function is200ResponseWithDataAndMeta($data, $meta = [])
     {
@@ -300,7 +309,8 @@ class UtilityService
         return empty($error) ? $response : $error;
     }
 
-    function pointInPolygon($point, $polygon) {
+    function pointInPolygon($point, $polygon)
+    {
         $x = $point[0]; // lng
         $y = $point[1]; // lat
         $inside = false;
@@ -313,7 +323,7 @@ class UtilityService
             $yj = $polygon[$j][1];
 
             $intersect = (($yi > $y) != ($yj > $y)) &&
-                        ($x < ($xj - $xi) * ($y - $yi) / (($yj - $yi) ?: 0.000001) + $xi);
+                ($x < ($xj - $xi) * ($y - $yi) / (($yj - $yi) ?: 0.000001) + $xi);
             if ($intersect) {
                 $inside = !$inside;
             }

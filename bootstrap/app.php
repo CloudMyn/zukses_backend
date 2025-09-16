@@ -83,6 +83,7 @@ $app->configure('database');
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'check-token' => App\Http\Middleware\CheckToken::class,
+    'check-admin' => App\Http\Middleware\CheckAdminToken::class,
 ]);
 
 $app->middleware([
