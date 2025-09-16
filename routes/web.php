@@ -351,3 +351,9 @@ $router->get('orders-items/by-seller/{order_id}/{seller_id}', 'OrderController@s
 
 // Contoh untuk Laravel di routes/api.php
 // Route::get('/orders/by-seller/{orderIdentifier}', [App\Http\Controllers\OrderController::class, 'showGroupedBySeller']);
+
+// Midtrans Account Verification Routes
+$router->group(['prefix' => 'v1/midtrans'], function () use ($router) {
+    $router->post('/check-account', 'MidtransAccountController@checkAccount');
+    $router->get('/supported-banks', 'MidtransAccountController@getSupportedBanks');
+});

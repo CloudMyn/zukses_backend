@@ -145,3 +145,7 @@ Most API responses follow this format:
 ### Messaging
 - `GET /v1/messages` - Get message history
 - `POST /v1/messages` - Send a new message
+
+### Midtrans Account Verification
+- `POST /v1/midtrans/check-account` - Verify bank account information
+- `GET /v1/midtrans/supported-banks` - Get list of supported banks for account verification
