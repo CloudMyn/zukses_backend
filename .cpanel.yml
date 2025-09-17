@@ -1,0 +1,19 @@
+deployment:
+  tasks:
+    # Path deploy Laravel API
+    - export DEPLOYPATH=/home/zuky5453/public_html/api.zukses.com
+
+    # Copy semua file ke folder deploy (kecuali yang tidak dibutuhkan)
+    - /bin/cp -R * $DEPLOYPATH
+
+    # Install dependencies Laravel
+    - /opt/cpanel/composer/bin/composer install --no-dev -o --working-dir=$DEPLOYPATH
+
+    # Jalankan migrasi database (opsional, hapus jika tidak perlu)
+    - /usr/bin/php $DEPLOYPATH/artisan migrate --force
+
+    # Bersihkan cache Laravel
+    - /usr/bin/php $DEPLOYPATH/artisan config:clear
+    - /usr/bin/php $DEPLOYPATH/artisan cache:clear
+    - /usr/bin/php $DEPLOYPATH/artisan route:clear
+    - /usr/bin/php $DEPLOYPATH/artisan view:clear
