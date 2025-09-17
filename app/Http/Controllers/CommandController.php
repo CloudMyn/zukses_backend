@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
 class CommandController extends Controller
@@ -27,10 +28,15 @@ class CommandController extends Controller
      */
     public function execute(Request $request)
     {
-        // Validasi input
-        $validated = $request->validate([
-            'command' => 'required|string'
+        $validator = Validator::make($request->all(), [
+            'command' => 'required|string',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $validated = $validator->validated();
 
         $command = $validated['command'];
 
@@ -54,17 +60,17 @@ class CommandController extends Controller
         try {
             // Escape command for security
             $escapedCommand = escapeshellcmd($command);
-            
+
             // Eksekusi perintah dengan timeout
             $output = [];
             $returnCode = 0;
-            
+
             // Set timeout to 60 seconds
             set_time_limit(60);
-            
+
             // Execute command
             exec($escapedCommand . ' 2>&1', $output, $returnCode);
-            
+
             // Join output lines
             $outputString = implode("\n", $output);
 
