@@ -366,7 +366,6 @@ $router->group(['prefix' => 'commands'], function () use ($router) {
     $router->post('/execute', 'CommandController@execute');
 });
 
-
 $router->options('/{any:.*}', function () {
     return response()->json([], 200);
 });

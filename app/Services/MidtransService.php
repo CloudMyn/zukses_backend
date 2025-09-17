@@ -82,7 +82,6 @@ class MidtransService
     {
         $endpoint = '/api/v1/beneficiary_banks';
 
-
         try {
             $resp = $this->request('GET', $endpoint);
 
