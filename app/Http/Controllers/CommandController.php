@@ -51,7 +51,6 @@ class CommandController extends Controller
 
         // Log command execution attempt
         Log::info('Command execution attempt', [
-            'admin_id' => $request->user()->id,
             'command' => $command,
             'ip' => $request->ip(),
             'timestamp' => now()
@@ -83,7 +82,6 @@ class CommandController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Command execution failed', [
-                'admin_id' => $request->user()->id,
                 'command' => $command,
                 'error' => $e->getMessage(),
                 'ip' => $request->ip(),
