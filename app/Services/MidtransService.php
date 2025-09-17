@@ -2,148 +2,197 @@
 
 namespace App\Services;
 
-use Exception;
-use Midtrans\Config;
-use Midtrans\CoreApi;
-use Midtrans\Snap;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class MidtransService
 {
-    protected $serverKey;
-    protected $clientKey;
-    protected $isProduction;
-    protected $baseUrl;
+    protected string $serverKey;
+    protected ?string $clientKey;
+    protected bool $isProduction;
+    protected string $baseUrl;
+    protected int $timeoutSeconds = 10;
 
     public function __construct()
     {
-        $this->serverKey = config('midtrans.server_key');
-        $this->clientKey = config('midtrans.client_key');
-        $this->isProduction = config('midtrans.is_production');
-        
-        // Set Midtrans configuration
-        Config::$serverKey = $this->serverKey;
-        Config::$clientKey = $this->clientKey;
-        Config::$isProduction = $this->isProduction;
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
-        
-        // Set base URL based on environment
-        $this->baseUrl = $this->isProduction ? 
-            'https://api.midtrans.com' : 
-            'https://api.sandbox.midtrans.com';
+        $this->serverKey = config('midtrans.server_key') ?? env('MIDTRANS_SERVER_KEY', '');
+        $this->clientKey = config('midtrans.client_key') ?? env('MIDTRANS_CLIENT_KEY', null);
+        $this->isProduction = (bool)(config('midtrans.is_production') ?? env('MIDTRANS_IS_PRODUCTION', false));
+
+        $this->baseUrl = $this->isProduction
+            ? 'https://api.midtrans.com'
+            : 'https://api.sandbox.midtrans.com';
     }
 
     /**
-     * Check bank account information using Midtrans API
-     * 
-     * @param array $accountDetails
+     * Validate bank account (Account Validation)
+     *
+     * Request: GET /api/v1/account_validation?bank={bank}&account={account}
+     *
+     * @param array $payload  ['bank' => 'bca', 'account' => '12345678', 'first_name' => '', 'last_name' => '']
      * @return array
      */
-    public function checkBankAccount($accountDetails)
+    public function validateBankAccount(array $payload): array
     {
-        try {
-            // Validate required parameters
-            if (!isset($accountDetails['bank']) || !isset($accountDetails['account_number'])) {
-                throw new Exception('Bank and account number are required');
-            }
-
-            // Prepare the request data
-            $requestData = [
-                'bank' => $accountDetails['bank'],
-                'account_number' => $accountDetails['account_number']
-            ];
-
-            // Add optional parameters if provided
-            if (isset($accountDetails['first_name'])) {
-                $requestData['first_name'] = $accountDetails['first_name'];
-            }
-            
-            if (isset($accountDetails['last_name'])) {
-                $requestData['last_name'] = $accountDetails['last_name'];
-            }
-
-            // Make the API request
-            $response = $this->makeApiRequest('/v1/account_verifications', 'POST', $requestData);
-            
-            return [
-                'success' => true,
-                'data' => $response
-            ];
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
+        if (empty($payload['bank']) || empty($payload['account'])) {
+            return $this->errorResponse('Parameter "bank" dan "account" wajib.', 400);
         }
-    }
 
-    /**
-     * Make API request to Midtrans
-     * 
-     * @param string $endpoint
-     * @param string $method
-     * @param array $data
-     * @return array
-     */
-    protected function makeApiRequest($endpoint, $method = 'GET', $data = [])
-    {
-        $url = $this->baseUrl . $endpoint;
-        
-        $headers = [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Authorization: Basic ' . base64_encode($this->serverKey . ':')
+        $endpoint = '/api/v1/account_validation';
+        $query = [
+            'bank' => $payload['bank'],
+            'account' => $payload['account'],
         ];
 
-        $ch = curl_init();
-        
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        // optional fields (docs tidak wajib, tapi beberapa integrasi mungkin pake)
+        if (!empty($payload['first_name'])) {
+            $query['first_name'] = $payload['first_name'];
         }
-        
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        
-        curl_close($ch);
-
-        if ($error) {
-            throw new Exception('cURL Error: ' . $error);
+        if (!empty($payload['last_name'])) {
+            $query['last_name'] = $payload['last_name'];
         }
 
-        $responseData = json_decode($response, true);
-        
-        if ($httpCode >= 400) {
-            throw new Exception('API Error: ' . ($responseData['message'] ?? 'Unknown error'), $httpCode);
-        }
+        try {
+            $resp = $this->request('GET', $endpoint, $query);
 
-        return $responseData;
+            return [
+                'success' => true,
+                'data' => $resp['body'] ?? $resp,
+                'http_code' => $resp['status'] ?? 200,
+            ];
+        } catch (Throwable $e) {
+            Log::error('[Midtrans] validateBankAccount failed: ' . $e->getMessage(), [
+                'bank' => $payload['bank'],
+                'account_masked' => $this->mask($payload['account']),
+            ]);
+
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
+        }
     }
 
     /**
-     * Get supported banks for account verification
-     * 
+     * Get list of supported beneficiary banks (Payouts)
+     *
+     * GET /api/v1/beneficiary_banks
+     *
      * @return array
      */
-    public function getSupportedBanks()
+    public function getSupportedBanks(): array
     {
+        $endpoint = '/api/v1/beneficiary_banks';
+
+
         try {
-            $response = $this->makeApiRequest('/v1/account_verifications/banks', 'GET');
-            
+            $resp = $this->request('GET', $endpoint);
+
             return [
                 'success' => true,
-                'data' => $response
+                'data' => $resp['body'] ?? $resp,
+                'http_code' => $resp['status'] ?? 200,
             ];
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
+        } catch (Throwable $e) {
+            Log::error('[Midtrans] getSupportedBanks failed: ' . $e->getMessage());
+
+            return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
         }
+    }
+
+    /**
+     * Generic request using Laravel Http client
+     *
+     * @param string $method  HTTP method
+     * @param string $endpoint  path starting with '/'
+     * @param array $params  query for GET, body for POST
+     * @return array
+     * @throws \Exception
+     */
+    protected function request(string $method, string $endpoint, array $params = []): array
+    {
+        $url = rtrim($this->baseUrl, '/') . $endpoint;
+
+        // minimal logging, mask sensitive values
+        Log::info('[Midtrans] request', [
+            'method' => strtoupper($method),
+            'url' => $url,
+            'params_preview' => $this->previewParams($params),
+            'env' => $this->isProduction ? 'production' : 'sandbox',
+        ]);
+
+        $client = Http::withBasicAuth($this->serverKey, '')
+            ->acceptJson()
+            ->timeout($this->timeoutSeconds);
+
+        $method = strtoupper($method);
+        try {
+            if ($method === 'GET') {
+                $resp = $client->get($url, $params);
+            } elseif ($method === 'POST') {
+                $resp = $client->post($url, $params);
+            } elseif ($method === 'PUT') {
+                $resp = $client->put($url, $params);
+            } elseif ($method === 'PATCH') {
+                $resp = $client->patch($url, $params);
+            } elseif ($method === 'DELETE') {
+                $resp = $client->delete($url, $params);
+            } else {
+                // fallback
+                $resp = $client->send($method, $url, ['json' => $params]);
+            }
+        } catch (Throwable $e) {
+            throw new \Exception('HTTP request failed: ' . $e->getMessage(), $e->getCode() ?: 500);
+        }
+
+        if ($resp->failed()) {
+            $status = $resp->status();
+            $body = $this->safeJsonDecode($resp->body());
+            $msg = $body['error_message'] ?? $body['message'] ?? $body['status_message'] ?? $resp->body() ?? 'Unknown API error';
+            throw new \Exception("Midtrans API error: {$msg}", $status);
+        }
+
+        return [
+            'status' => $resp->status(),
+            'body' => $resp->json(),
+            'raw' => $resp->body(),
+        ];
+    }
+
+    /* ---------------- helpers ---------------- */
+
+    protected function mask(string $value): string
+    {
+        if ($value === '') return '';
+        $len = strlen($value);
+        if ($len <= 4) return str_repeat('*', $len);
+        return substr($value, 0, 2) . str_repeat('*', max(0, $len - 4)) . substr($value, -2);
+    }
+
+    protected function previewParams(array $params): array
+    {
+        if (isset($params['account'])) {
+            $params['account'] = $this->mask((string)$params['account']);
+        }
+        if (isset($params['server_key'])) {
+            $params['server_key'] = '***';
+        }
+        return $params;
+    }
+
+    protected function safeJsonDecode(string $raw)
+    {
+        $decoded = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded;
+        }
+        return ['raw' => $raw];
+    }
+
+    protected function errorResponse(string $message, int $code = 500): array
+    {
+        return [
+            'success' => false,
+            'message' => $message,
+            'http_code' => $code,
+        ];
     }
 }

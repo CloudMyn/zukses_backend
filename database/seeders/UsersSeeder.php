@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UsersSeeder extends Seeder
 {
@@ -17,7 +18,7 @@ class UsersSeeder extends Seeder
         DB::table('users')->insert([
             'name' => 'admin',
             'email' => 'admin@special-moment.info',
-            'password' => '$2y$10$j/L14t7Ac1pIrQ1U9xDwSe.cTvG3S.ejglOMBemMVJ4QyBp/pHfi6',
+            'password' => Hash::make('password'),
             'role' => 'admin',
             'whatsapp' => '081254130919',
         ]);

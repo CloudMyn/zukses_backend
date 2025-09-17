@@ -15,7 +15,7 @@ class CorsMiddleware
      */
     public function handle($request, Closure $next)
     {
-       //RULE HEADERSNYA HARUS KITA SET SECARA SPESIFIK SEPERTI INI 
+       //RULE HEADERSNYA HARUS KITA SET SECARA SPESIFIK SEPERTI INI
         $headers = [
             'Access-Control-Allow-Origin'      => '*',
             'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE',
@@ -23,7 +23,7 @@ class CorsMiddleware
             'Access-Control-Max-Age'           => '86400',
             'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
         ];
-        
+
         //TAPI JIKA METHOD YANG MASUK ADALAH OPTIONS
         if ($request->isMethod('OPTIONS')) {
             //MAKA KITA KEMBALIKAN BAHWA METHOD TERSEBUT ADALAH OPTIONS
@@ -35,6 +35,7 @@ class CorsMiddleware
         foreach ($headers as $key => $row) {
             $response->headers->set($key, $row);
         }
+
         return $response;
     }
 

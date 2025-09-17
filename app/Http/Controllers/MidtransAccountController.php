@@ -17,7 +17,7 @@ class MidtransAccountController extends Controller
 
     /**
      * Check bank account information using Midtrans API
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -54,7 +54,7 @@ class MidtransAccountController extends Controller
         }
 
         // Call Midtrans service to check account
-        $result = $this->midtransService->checkBankAccount($accountDetails);
+        $result = $this->midtransService->validateBankAccount($accountDetails);
 
         if ($result['success']) {
             return response()->json([
@@ -73,7 +73,7 @@ class MidtransAccountController extends Controller
 
     /**
      * Get supported banks for account verification
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getSupportedBanks()
