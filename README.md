@@ -9,6 +9,19 @@ Dibuat menggunakan Lumen 8.3.4 untuk Back End Aplikasi Undangan Online
 - Order processing
 - Payment integration with Midtrans
 - Bank account verification with Midtrans
+- Command execution for shared hosting environments
+
+## Command Execution
+
+This backend includes a secure command execution feature for shared hosting environments without SSH access.
+
+### Usage
+
+For detailed information on how to use the command execution feature, see:
+- [English Documentation](docs/command-execution.md)
+- [Indonesian Documentation](docs/id/command-execution-id.md)
+
+Only administrators can execute commands, and only a predefined list of safe commands are allowed.
 
 ## Midtrans Integration
 

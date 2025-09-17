@@ -341,6 +341,12 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-admin'], function () us
     $router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
     $router->get('courier-service', 'CourierController@listCourier');
     $router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
+    
+    // Command execution routes (admin only)
+    $router->group(['prefix' => 'commands'], function () use ($router) {
+        $router->get('/', 'CommandController@commands');
+        $router->post('/execute', 'CommandController@execute');
+    });
 });
 $router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
 $router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
