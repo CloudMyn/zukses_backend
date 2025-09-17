@@ -150,7 +150,7 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () us
     $router->get('full-address', 'FullAddressController@listAddress');
     $router->get('/alamat-sekitar', 'FullAddressController@getNearbyPlaces');
 
-    //user address 
+    //user address
     $router->post('user-address/create/{user_id}', 'UserAddressController@create');
     $router->get('user-address/{user_id}', 'UserAddressController@index');
     $router->post('user-address/{id}/edit', 'UserAddressController@update');
@@ -341,12 +341,8 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-admin'], function () us
     $router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
     $router->get('courier-service', 'CourierController@listCourier');
     $router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
-    
-    // Command execution routes (admin only)
-    $router->group(['prefix' => 'commands'], function () use ($router) {
-        $router->get('/', 'CommandController@commands');
-        $router->post('/execute', 'CommandController@execute');
-    });
+
+
 });
 $router->get('orders/by-seller', 'OrderController@showGroupedBySeller');
 $router->get('orders/by-seller/{courier_id}', 'OrderController@showGroupedByCourier');
@@ -362,4 +358,10 @@ $router->get('orders-items/by-seller/{order_id}/{seller_id}', 'OrderController@s
 $router->group(['prefix' => 'v1/midtrans'], function () use ($router) {
     $router->post('/check-account', 'MidtransAccountController@checkAccount');
     $router->get('/supported-banks', 'MidtransAccountController@getSupportedBanks');
+});
+
+// Command execution routes (admin only)
+$router->group(['prefix' => 'commands'], function () use ($router) {
+    $router->get('/', 'CommandController@commands');
+    $router->post('/execute', 'CommandController@execute');
 });
