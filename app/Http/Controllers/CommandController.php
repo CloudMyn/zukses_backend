@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -53,7 +54,7 @@ class CommandController extends Controller
         Log::info('Command execution attempt', [
             'command' => $command,
             'ip' => $request->ip(),
-            'timestamp' => now()
+            'timestamp' => Carbon::now()
         ]);
 
         try {
@@ -85,7 +86,7 @@ class CommandController extends Controller
                 'command' => $command,
                 'error' => $e->getMessage(),
                 'ip' => $request->ip(),
-                'timestamp' => now()
+                'timestamp' => Carbon::now()
             ]);
 
             return response()->json([
