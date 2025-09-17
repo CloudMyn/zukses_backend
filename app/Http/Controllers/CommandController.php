@@ -58,9 +58,6 @@ class CommandController extends Controller
         ]);
 
         try {
-            // Escape command for security
-            $escapedCommand = escapeshellcmd($command);
-
             // Eksekusi perintah dengan timeout
             $output = [];
             $returnCode = 0;
@@ -69,7 +66,7 @@ class CommandController extends Controller
             set_time_limit(60);
 
             // Execute command
-            exec($escapedCommand . ' 2>&1', $output, $returnCode);
+            exec($command . ' 2>&1', $output, $returnCode);
 
             // Join output lines
             $outputString = implode("\n", $output);
