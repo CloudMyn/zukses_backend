@@ -21,8 +21,9 @@ class MidtransService
         $this->isProduction = (bool)(config('midtrans.is_production') ?? env('MIDTRANS_IS_PRODUCTION', false));
 
         $this->baseUrl = $this->isProduction
-            ? 'https://api.midtrans.com'
-            : 'https://api.sandbox.midtrans.com';
+            ? 'https://app.midtrans.com/iris'
+            : 'https://app.sandbox.midtrans.com/iris';
+
     }
 
     /**
@@ -62,10 +63,6 @@ class MidtransService
                 'http_code' => $resp['status'] ?? 200,
             ];
         } catch (Throwable $e) {
-            Log::error('[Midtrans] validateBankAccount failed: ' . $e->getMessage(), [
-                'bank' => $payload['bank'],
-                'account_masked' => $this->mask($payload['account']),
-            ]);
 
             return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
         }
@@ -80,10 +77,12 @@ class MidtransService
      */
     public function getSupportedBanks(): array
     {
+        // $endpoint = '/api/v1/beneficiary_banks';
         $endpoint = '/api/v1/beneficiary_banks';
 
         try {
             $resp = $this->request('GET', $endpoint);
+
 
             return [
                 'success' => true,
@@ -91,7 +90,6 @@ class MidtransService
                 'http_code' => $resp['status'] ?? 200,
             ];
         } catch (Throwable $e) {
-            Log::error('[Midtrans] getSupportedBanks failed: ' . $e->getMessage());
 
             return $this->errorResponse($e->getMessage(), $e->getCode() ?: 500);
         }
