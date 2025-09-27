@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Message; // Pastikan ini diimpor
+use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller
 {
@@ -29,12 +30,16 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         // Validasi data yang masuk dari request
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'text' => 'required|string',
             'user_profile_id' => 'nullable|string',   // Validasi untuk kolom baru
             'product_id' => 'nullable|integer',        // Validasi untuk kolom baru
             'variant_price_id' => 'nullable|integer',  // Validasi untuk kolom baru
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         // Buat pesan baru menggunakan model Message
         $message = Message::create([

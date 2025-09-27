@@ -6,6 +6,7 @@ use App\Models\UsersAccessMenu;
 use App\Models\UsersMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class UsersAccessMenuController extends Controller
 {
@@ -113,10 +114,14 @@ class UsersAccessMenuController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'role' => 'required',
             'menu_id' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             "role" => $request->role,

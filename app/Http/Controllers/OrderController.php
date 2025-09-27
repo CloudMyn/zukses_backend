@@ -16,6 +16,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 
 class OrderController extends Controller
@@ -29,7 +30,7 @@ class OrderController extends Controller
 
     public function checkout(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
             'items.*.variant_id' => 'nullable|integer',
@@ -40,6 +41,10 @@ class OrderController extends Controller
             'customer_phone' => 'required|string',
             'totalAmount' => 'required|numeric|min:0',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $orderId = 'ORDER-' . time();
         $itemDetails = [];
@@ -326,7 +331,7 @@ class OrderController extends Controller
         \Midtrans\Config::$isProduction = config('midtrans.is_production');
         \Midtrans\Config::$serverKey = config('midtrans.server_key');
 
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'customer_name' => 'required|string',
             'customer_email' => 'required|string',
             'customer_phone' => 'required|string',
@@ -337,6 +342,10 @@ class OrderController extends Controller
             'items.*.qty' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $orderId = 'ORDER-' . time();
         $total = 0;

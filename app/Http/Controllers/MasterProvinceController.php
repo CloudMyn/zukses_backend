@@ -8,6 +8,7 @@ use App\Models\MasterProvince;
 use App\Models\MasterSubdistrict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class MasterProvinceController extends Controller
 {
@@ -125,9 +126,13 @@ class MasterProvinceController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             "name" => $request->name,
@@ -145,9 +150,13 @@ class MasterProvinceController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $province = MasterProvince::find($id);
 

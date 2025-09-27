@@ -32,6 +32,18 @@ class UsersController extends Controller
 {
     public function registerNew(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'contact' => 'required|string|email_or_phone',
+            'fullName' => 'required|string|max:255',
+            'role' => 'required|string|in:user,admin,seller',
+            'gender' => 'required|string|in:Laki-laki,Perempuan',
+            'birthDate' => 'required|date',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $user = User::where("email", $request->contact)
             ->orWhere("whatsapp", $request->contact)
             ->first();
@@ -49,12 +61,13 @@ class UsersController extends Controller
         $isEmail = filter_var($request->contact, FILTER_VALIDATE_EMAIL);
         $data = [
             "name" => $request->fullName,
-            "email" => $request->contact,
+            "email" => $isEmail ? $request->contact : null,
+            "whatsapp" => $isEmail ? null : $request->contact,
             "password" => app("hash")->make(env('PASSWORD_DEFAULT')),
             "role" => $request->role,
-            "whatsapp" => $isEmail ? null : $request->contact,
             'username' => $randomString,
-            'start' => Carbon::now()
+            'start' => Carbon::now()->toDateString(),
+            'status' => 1,
         ];
 
         $dataWithoutPassword = [
@@ -332,6 +345,19 @@ class UsersController extends Controller
 
     public function register(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'role' => 'required|string|in:user,admin,seller',
+            'username' => 'required|string|unique:users,username',
+            'whatsapp' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $user = User::where("email", $request->email)
             ->orWhere("whatsapp", $request->whatsapp)
             ->first();
@@ -339,13 +365,7 @@ class UsersController extends Controller
         if ($user) {
             return $this->utilityService->is422Response("Email atau WhatsApp sudah digunakan");
         }
-        // $chars = 'abcdefghijklmnopqrstuvwxyz';
-        // $randomString = '';
 
-        // for ($i = 0; $i < 6; $i++) {
-        //     $randomString .= $chars[random_int(0, strlen($chars) - 1)];
-        // }
-        // $isEmail = filter_var($request->contact, FILTER_VALIDATE_EMAIL);
         $data = [
             "name" => $request->name,
             "email" => $request->email,
@@ -379,6 +399,18 @@ class UsersController extends Controller
     }
     public function edit(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|unique:users,username,'.$id,
+            'email' => 'required|email|unique:users,email,'.$id,
+            'role' => 'required|string|in:user,admin,seller',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $user = User::find($id);
         if (!$user) {
             return $this->utilityService->is404Response("User tidak ditemukan");
@@ -417,7 +449,18 @@ class UsersController extends Controller
     }
     public function updateStatus(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|integer|in:0,1',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $user = User::find($id);
+        if (!$user) {
+            return $this->utilityService->is404Response("User tidak ditemukan");
+        }
 
         $user->status = $request->status;
         if ($request->status == 0) {
@@ -425,8 +468,9 @@ class UsersController extends Controller
         } else {
             $user->expierd = null;
         }
+
         if ($user->save()) {
-            return $this->utilityService->is200Response("Berhasil update akun & token");
+            return $this->utilityService->is200Response("Berhasil update status user");
         } else {
             return $this->utilityService->is500Response("Problem with server");
         }
@@ -883,6 +927,18 @@ class UsersController extends Controller
     }
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$id,
+            'whatsapp' => 'required|string',
+            'role' => 'required|string|in:user,admin,seller',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $user = User::find($id);
         if (!$user) {
             return $this->utilityService->is404Response("User tidak ditemukan");
@@ -1292,12 +1348,31 @@ class UsersController extends Controller
 
     public function changepassword(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string|min:6',
+            'encryptEmail' => 'nullable|string',
+            'email' => 'nullable|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         if ($request->encryptEmail) {
             $email = Crypt::decryptString($request->encryptEmail);
         } else {
             $email = $request->email;
         }
+
+        if (!$email) {
+            return $this->utilityService->is422Response("Email tidak valid");
+        }
+
         $users = DB::table('users')->where('email', $email)->first();
+        if (!$users) {
+            return $this->utilityService->is404Response("User tidak ditemukan");
+        }
+
         $changePassword = User::find($users->id);
         $changePassword->password = app("hash")->make($request->password);
 

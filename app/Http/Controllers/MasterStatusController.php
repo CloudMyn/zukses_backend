@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MasterStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MasterStatusController extends Controller
 {
@@ -39,10 +40,14 @@ class MasterStatusController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'desc' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             'name' => $request->name,
@@ -61,9 +66,13 @@ class MasterStatusController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $status = MasterStatus::find($id);
 

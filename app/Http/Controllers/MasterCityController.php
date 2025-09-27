@@ -6,6 +6,7 @@ use App\Models\MasterCity;
 use App\Models\MasterProvince;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class MasterCityController extends Controller
 {
@@ -111,10 +112,14 @@ class MasterCityController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'province_id' => 'required|exists:master_provinces,id',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             "name" => $request->name,
@@ -133,10 +138,14 @@ class MasterCityController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'province_id' => 'required|exists:master_provinces,id',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $city = MasterCity::find($id);
 

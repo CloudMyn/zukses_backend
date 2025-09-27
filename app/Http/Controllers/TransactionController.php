@@ -98,14 +98,29 @@ class TransactionController extends Controller
 
     public function create(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'seller_id' => 'required|integer|exists:shop_profiles,id',
+            'buyer_id' => 'required|integer|exists:buyers,id',
+            'payment_method' => 'required|string|max:255',
+            'reference_tripay' => 'nullable|string|max:255',
+            'detail' => 'required|array|min:1',
+            'detail.*.product_id' => 'required|integer|exists:products,id',
+            'detail.*.product_variant_id' => 'nullable|integer|exists:product_variant_prices,id',
+            'detail.*.price' => 'required|numeric|min:0',
+            'detail.*.qty' => 'required|integer|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         DB::transaction(function () use ($request) {
             $transaction = Transaction::create([
                 'seller_id' => $request->seller_id,
                 'buyer_id' => $request->buyer_id,
                 'status_id' => 1,
-                // 'total_amount' => $request->total_amount,
                 'payment_method' => $request->payment_method,
-                // 'reference_tripay' => $request->reference_tripay,
+                'reference_tripay' => $request->reference_tripay,
             ]);
 
             $total_amount = 0;

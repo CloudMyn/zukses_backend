@@ -196,11 +196,15 @@ class ShopProfileController extends Controller
         $user = $request->user();
 
         // 1. Validate Input
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'shop_name' => 'required|string|max:30',
             'description' => 'required|string|max:500',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg', // 2MB max
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // 2MB max
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $logoUrl = null;
 

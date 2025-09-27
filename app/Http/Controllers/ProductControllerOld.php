@@ -16,6 +16,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use PhpParser\Node\Stmt\TryCatch;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -99,7 +100,7 @@ class ProductController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'desc' => 'required',
             'category_id' => 'required|exists:product_categories,id',
@@ -112,6 +113,10 @@ class ProductController extends Controller
             'country_origin' => 'required',
             'is_customizable' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         // Validasi ukuran file
         foreach ($request->media as $item) {
@@ -287,7 +292,7 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'desc' => 'required',
             'category_id' => 'required|exists:product_categories,id',
@@ -305,6 +310,10 @@ class ProductController extends Controller
 
 
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
 
         foreach ($request->media as $item) {

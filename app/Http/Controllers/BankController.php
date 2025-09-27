@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Bank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class BankController extends Controller
 {
@@ -19,10 +20,14 @@ class BankController extends Controller
     // Store New Bank
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name_bank' => 'required|string',
             'icon' => 'nullable|file|image|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $iconUrl = null;
         if ($request->hasFile('icon')) {
@@ -60,10 +65,14 @@ class BankController extends Controller
             return response()->json(['message' => 'Bank not found'], 404);
         }
 
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name_bank' => 'sometimes|string',
             'icon' => 'nullable|file|image|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         if ($request->hasFile('icon')) {
             // Hapus icon lama jika ada

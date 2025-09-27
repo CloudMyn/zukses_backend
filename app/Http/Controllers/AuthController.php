@@ -162,6 +162,18 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'email_whatsapp' => 'required|string|email_or_phone',
+            'name' => 'nullable|string|max:255',
+            'type' => 'required|in:email,whatsapp',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
+        $validated = $validator->validated();
+
         $userExists = DB::table('users')
             ->where('email', $request->email_whatsapp)
             ->orWhere('whatsapp', $request->email_whatsapp)
@@ -170,6 +182,7 @@ class AuthController extends Controller
         if ($userExists) {
             return $this->utilityService->is422Response('Akun sudah terdaftar');
         }
+
         $chars = 'abcdefghijklmnopqrstuvwxyz';
         $randomString = '';
         for ($i = 0; $i < 6; $i++) {
@@ -178,36 +191,46 @@ class AuthController extends Controller
 
         // Data user default
         $dataUser = [
-            'name' => $request->name,
-            'email' => $request->email_whatsapp,
+            'name' => $request->name ?? $request->email_whatsapp,
+            'email' => $request->type === 'email' ? $request->email_whatsapp : null,
+            'whatsapp' => $request->type === 'whatsapp' ? $request->email_whatsapp : null,
             'password' => app("hash")->make(env('PASSWORD_DEFAULT')),
             'role' => 'user',
             'username' => $randomString,
+            'start' => now()->toDateString(),
+            'status' => 1,
         ];
 
-        // Jika register via whatsapp, sesuaikan field
-        if ($request->type === 'whatsapp') {
-            $dataUser['whatsapp'] = $request->email_whatsapp;
+        // Validasi required fields berdasarkan database schema
+        if (!$dataUser['name']) {
+            return $this->utilityService->is422Response('Nama wajib diisi');
+        }
+
+        if (!$dataUser['email'] && !$dataUser['whatsapp']) {
+            return $this->utilityService->is422Response('Email atau WhatsApp wajib diisi');
         }
 
         // Simpan user baru
         $newUser = Users::create($dataUser);
         $credentials = [
-            'email' => $request->email_whatsapp,
+            'email' => $dataUser['email'] ?? $dataUser['whatsapp'],
             'password' => env('PASSWORD_DEFAULT'),
         ];
 
         $token = Auth::guard('users')->attempt($credentials);
         Token::create([
             'token' => $token,
-            'email' => $request->email_whatsapp,
+            'email' => $dataUser['email'] ?? $dataUser['whatsapp'],
             'is_active' => 1
         ]);
-        // Kirim OTP
-        $this->sendOTPWhatsapp($request, $newUser->whatsapp, $newUser->id);
 
-        if (filter_var($request->email_whatsapp, FILTER_VALIDATE_EMAIL)) {
-            $this->sendOTP($request, $request->email_whatsapp, $request->name, $newUser->id);
+        // Kirim OTP
+        if ($dataUser['whatsapp']) {
+            $this->sendOTPWhatsapp($request, $newUser->whatsapp, $newUser->id);
+        }
+
+        if ($dataUser['email']) {
+            $this->sendOTP($request, $newUser->email, $newUser->name, $newUser->id);
         }
 
         return $this->utilityService->is200ResponseWithData('Registrasi berhasil, OTP telah dikirim', $newUser->id);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UsersRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class UsersRoleController extends Controller
 {
@@ -47,9 +48,13 @@ class UsersRoleController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'role' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             "role" => $request->role,

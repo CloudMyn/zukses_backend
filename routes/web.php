@@ -94,7 +94,6 @@ $router->group(['prefix' => 'v1/master'], function () use ($router) {
 
 $router->get('v1/fees', 'ServiceFeeController@getSettings');
 
-
 $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () use ($router) {
 
     $router->group(['prefix' => 'product'], function () use ($router) {

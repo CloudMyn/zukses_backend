@@ -54,6 +54,17 @@ class ShopBankAccountController extends Controller
      */
     public function store(Request $request, $seller_id)
     {
+        $validator = Validator::make($request->all(), [
+            'bank_id' => 'required|integer|exists:banks,id',
+            'account_number' => 'required|string|max:50',
+            'account_name' => 'required|string|max:255',
+            'is_primary' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         if ($request->is_primary == 1) {
             $userBanks = DB::table('shop_bank_accounts')->where('is_primary', 1)->where('seller_id', $seller_id)->first();
             if ($userBanks) {
@@ -101,6 +112,17 @@ class ShopBankAccountController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'bank_id' => 'required|integer|exists:banks,id',
+            'account_number' => 'required|string|max:50',
+            'account_name' => 'required|string|max:255',
+            'is_primary' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $bankAccount = ShopBankAccount::findOrFail($id);
 
         $bankAccount->bank_id = $request->bank_id;

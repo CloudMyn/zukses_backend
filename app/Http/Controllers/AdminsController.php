@@ -14,6 +14,19 @@ class AdminsController extends Controller
 {
     public function register(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:admins,email',
+            'password' => 'required|string|min:6',
+            'role' => 'required|string|in:admin,user,seller',
+            'username' => 'required|string|unique:admins,username',
+            'whatsapp' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $email = Admin::where("email", $request->email)
             ->first();
         $whatsapp = Admin::where("whatsapp", $request->whatsapp)
@@ -25,13 +38,7 @@ class AdminsController extends Controller
         if ($whatsapp) {
             return $this->utilityService->is422Response("WhatsApp sudah digunakan");
         }
-        // $chars = 'abcdefghijklmnopqrstuvwxyz';
-        // $randomString = '';
 
-        // for ($i = 0; $i < 6; $i++) {
-        //     $randomString .= $chars[random_int(0, strlen($chars) - 1)];
-        // }
-        // $isEmail = filter_var($request->contact, FILTER_VALIDATE_EMAIL);
         $data = [
             "name" => $request->name,
             "email" => $request->email,
@@ -66,6 +73,18 @@ class AdminsController extends Controller
     }
     public function edit(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|unique:admins,username,'.$id,
+            'email' => 'required|email|unique:admins,email,'.$id,
+            'role' => 'required|string|in:admin,user,seller',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $admin = Admin::find($id);
         if (!$admin) {
             return $this->utilityService->is404Response("Admin tidak ditemukan");
@@ -97,7 +116,7 @@ class AdminsController extends Controller
         }
 
         if ($admin->save()) {
-            return $this->utilityService->is200Response("Berhasil update akun & token");
+            return $this->utilityService->is200Response("Berhasil update akun");
         } else {
             return $this->utilityService->is500Response("Problem with server");
         }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Helpers\UrlRemove;
 use App\Models\Menu;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class MenuController extends Controller
 {
@@ -180,12 +181,16 @@ class MenuController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'level' => 'required',
             'url' => 'required',
             'is_active_flag' => 'required',
             'name' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $lastMenu = Menu::latest('id')->first();
         $nextCode = $lastMenu ? $lastMenu->id + 1 : 1;

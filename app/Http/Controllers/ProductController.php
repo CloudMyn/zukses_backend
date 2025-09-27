@@ -244,6 +244,7 @@ class ProductController extends Controller
             ]);
         } catch (\Exception $e) {
             \Log::error('Gagal mengambil daftar produk: ' . $e->getMessage());
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat mengambil data produk.'
@@ -1184,10 +1185,32 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'idCategorie' => 'required|integer|exists:product_categories,id',
+            'productName' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'description' => 'required|string',
+            'parentSku' => 'nullable|string|max:100',
+            'scheduledDate' => 'nullable|date',
+            'isCodEnabled' => 'nullable|boolean',
+            'condition' => 'required|boolean',
+            'voucher' => 'nullable|string|max:255',
+            'productPromo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'productPhotos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         $uploaded = [];
         DB::beginTransaction();
         try {
             $shopeProfile = DB::table('shop_profiles')->where('user_id', auth()->user()->id)->first();
+            if (!$shopeProfile) {
+                return $this->utilityService->is422Response('Shop profile not found');
+            }
             $imageUrl = null;
 
             if ($request->hasFile('productPromo')) {

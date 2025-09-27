@@ -18,10 +18,15 @@ class ProductSeeder extends Seeder
 
         $data = [
             'name' => "UNDANGAN_ONLINE",
-            'image' => "",
-            'type' => "DIGITAL",
-            'url' => "",
-            'is_active' => 1,
+            'desc' => "Undangan Digital Online",
+            'seller_id' => 1,
+            'category_id' => 1,
+            'sku' => "UND001",
+            'price' => 100000,
+            'stock' => 100,
+            'min_purchase' => 1,
+            'max_purchase' => 10,
+            'is_used' => false,
         ];
 
         Product::create($data);

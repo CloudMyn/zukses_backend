@@ -7,6 +7,7 @@ use App\Models\MasterProvince;
 use App\Models\MasterSubdistrict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class MasterSubdistrictController extends Controller
 {
@@ -104,10 +105,14 @@ class MasterSubdistrictController extends Controller
 
     public function create(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'city_id' => 'required|exists:master_cities,id',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $data = [
             "name" => $request->name,
@@ -126,10 +131,14 @@ class MasterSubdistrictController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'name' => 'required',
             'city_id' => 'required|exists:master_cities,id',
         ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $subdistrict = MasterSubdistrict::find($id);
 

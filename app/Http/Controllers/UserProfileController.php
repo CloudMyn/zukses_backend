@@ -17,6 +17,16 @@ class UserProfileController extends Controller
 
     public function create(Request $request, $user_id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'gender' => 'required|string|in:Laki-laki,Perempuan',
+            'date_birth' => 'required|date',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
 
         $useProfil = DB::table('user_profiles')->where('user_id', $user_id)->first();
         if ($useProfil) {
