@@ -1,2 +1,8 @@
+# Ignore semua file/folder
 *
+
+# Tapi jangan ignore file .gitignore itu sendiri
 !.gitignore
+
+# Jangan ignore folder data dan semua isinya
+!/data/

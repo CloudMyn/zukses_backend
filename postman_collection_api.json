@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Zukses Backend API - Koleksi Lengkap",
-    "description": "# 🚀 Zukses Backend API Collection\n\n## 📋 Deskripsi\nKoleksi Postman ini berisi semua endpoint API untuk sistem Zukses Backend termasuk:\n- **Autentikasi** (Login, Register, OTP, Google OAuth)\n- **User Profile** (Manajemen profil pengguna)\n\n## 🔐 Autentikasi\nSemua endpoint kecuali endpoint publik memerlukan Bearer Token. Token akan otomatis disimpan setelah login berhasil.\n\n## 📝 Cara Penggunaan\n1. Import file ini ke Postman\n2. Jalankan endpoint **Login User** untuk mendapatkan token\n3. Token akan otomatis digunakan untuk semua endpoint yang memerlukan autentikasi\n4. Gunakan environment variable `{{base_url}}` untuk base URL\n\n## ⚙️ Environment Variables yang Diperlukan\n- `base_url` - URL base API (contoh: https://api.zukses.com)\n\n## 🛡️ Keamanan\n- Header `Accept: application/json` otomatis ditambahkan\n- Bearer Token otomatis di-set untuk endpoint yang memerlukan autentikasi\n- Form-data validation untuk setiap endpoint\n\n## 📞 Support\nUntuk informasi lebih lanjut, hubungi tim development Zukses.",
+    "description": "# 🚀 Zukses Backend API Collection\n\n## 📋 Deskripsi\nKoleksi Postman ini berisi semua endpoint API untuk sistem Zukses Backend termasuk:\n- **🔐 Autentikasi** (Login, Register, OTP, Google OAuth)\n- **👤 User Profile** (Manajemen profil pengguna)\n- **👥 User Management** (Manajemen data pengguna lengkap)\n- **🖼️ Banner Management** (Manajemen banner publik dan admin)\n- **📍 User Address** (Manajemen alamat pengguna)\n- **🏦 Bank Management** (Manajemen bank dan icon)\n\n## 🔐 Autentikasi\nSemua endpoint kecuali endpoint publik memerlukan Bearer Token. Token akan otomatis disimpan setelah login berhasil.\n\n## 📝 Cara Penggunaan\n1. Import file ini ke Postman\n2. Jalankan endpoint **Login User** untuk mendapatkan token\n3. Token akan otomatis digunakan untuk semua endpoint yang memerlukan autentikasi\n4. Gunakan environment variable `{{base_url}}` untuk base URL\n\n## ⚙️ Environment Variables yang Diperlukan\n- `base_url` - URL base API (contoh: https://api.zukses.com)\n- `bearer_token` - Token JWT dari login (otomatis terisi)\n- `user_id` - ID user untuk testing (otomatis terisi setelah login)\n- `banner_id` - ID banner untuk testing (manual input)\n- `address_id` - ID alamat untuk testing (manual input)\n- `bank_id` - ID bank untuk testing (manual input)\n\n## 🛡️ Keamanan\n- Header `Accept: application/json` otomatis ditambahkan\n- Bearer Token otomatis di-set untuk endpoint yang memerlukan autentikasi\n- Form-data validation untuk setiap endpoint\n- File upload security validation\n\n## 📚 Documentation\n- **Auth API**: Lihat file `api-docs/auth.md`\n- **User Management**: Lihat file `api-docs/user-management.md`\n- **Banner Management**: Lihat file `api-docs/banner-management.md`\n- **User Address**: Lihat file `api-docs/user-address.md`\n- **Bank Management**: Lihat file `api-docs/bank-management.md`\n\n## 📞 Support\nUntuk informasi lebih lanjut, hubungi tim development Zukses.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "zukses-backend-api-collection",
     "_exporter_id": "zukses-exporter"
@@ -24,6 +24,11 @@
     },
     {
       "key": "bearer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bank_id",
       "value": "",
       "type": "string"
     }
@@ -633,6 +638,1079 @@
               "path": ["v1", "user-profile", "{{user_id}}", "delete"]
             },
             "description": "## 🗑️ Hapus Profile User\n\n### Deskripsi\nMenghapus profil pengguna beserta gambar dari storage.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna\n\n### 📤 Response\n- **Success**: Profil dan gambar berhasil dihapus\n- **Error**: Profil tidak ditemukan\n\n### 💡 Tips\n- Gambar otomatis dihapus dari Minio storage\n- Hapus record profil dari database\n- Gunakan dengan hati-hati karena tidak bisa di-undo\n- Pastikan user_id yang akan dihapus sudah benar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🖼️ Banner Management",
+      "description": "Endpoint untuk manajemen banner (publik dan admin)",
+      "item": [
+        {
+          "name": "👀 Get Active Banners (Public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banners",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners"]
+            },
+            "description": "## 👀 Get Active Banners (Public)\n\n### Deskripsi\nMengambil semua banner yang aktif untuk ditampilkan di publik.\n\n### 🔐 Autentikasi\nTidak memerlukan autentikasi (endpoint publik).\n\n### 🔧 Query Parameters\nTidak ada parameter yang diperlukan.\n\n### 📤 Response\n- **Success**: Daftar banner aktif diurutkan berdasarkan field 'order'\n- **Error**: Tidak ada banner aktif yang ditemukan\n\n### 💡 Tips\n- Endpoint ini publik, tidak perlu token\n- Banner otomatis diurutkan berdasarkan field 'order'\n- Hanya banner dengan is_active=1 yang ditampilkan\n- Berguna untuk homepage, landing page, dll."
+          },
+          "response": []
+        },
+        {
+          "name": "📋 Get All Banners (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banners/list?per_page=10&search=promo&is_active=1",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners", "list"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "10",
+                  "description": "Jumlah data per halaman (default: 10)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "promo",
+                  "description": "Pencarian di title, description, atau admin name (opsional)",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "1",
+                  "description": "Filter status aktif (opsional: 0, 1)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## 📋 Get All Banners (Admin)\n\n### Deskripsi\nMengambil semua banner dengan pagination, filter, dan pencarian (hanya untuk admin).\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Query Parameters\n- **per_page** (opsional): Jumlah data per halaman\n- **search** (opsional): Pencarian di title, description, admin name\n- **is_active** (opsional): Filter status aktif\n\n### 📤 Response\n- **Success**: Daftar banner dengan pagination dan filter\n- **Error**: Tidak ada banner yang ditemukan\n\n### 💡 Tips\n- Gunakan untuk admin panel management\n- Filter by is_active untuk melihat banner aktif/non-aktif\n- Gunakan search untuk mencari banner spesifik\n- Pagination untuk data yang besar"
+          },
+          "response": []
+        },
+        {
+          "name": "➕ Create New Banner",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Promo Spesial",
+                  "description": "Judul banner (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Dapatkan diskon hingga 50% untuk semua produk",
+                  "description": "Deskripsi banner (wajib diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "src": [],
+                  "description": "File gambar banner (wajib diisi, format: jpeg,png,jpg,gif,webp)",
+                  "type": "file"
+                },
+                {
+                  "key": "target_url",
+                  "value": "https://example.com/promo",
+                  "description": "URL target saat banner diklik (opsional)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "1",
+                  "description": "Status aktif (opsional: 0=non-aktif, 1=aktif)",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "1",
+                  "description": "Urutan tampil (opsional)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/banners",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners"]
+            },
+            "description": "## ➕ Create New Banner\n\n### Deskripsi\nMembuat banner baru dengan upload gambar.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **title** (wajib): Judul banner, maksimal 255 karakter\n- **description** (wajib): Deskripsi banner\n- **image** (wajib): File gambar, format: jpeg/png/jpg/gif/webp\n- **target_url** (opsional): URL target\n- **is_active** (opsional): Status aktif\n- **order** (opsional): Urutan tampil\n\n### 📤 Response\n- **Success**: Banner berhasil dibuat dengan gambar di-upload\n- **Error**: Validasi gagal, file tidak valid\n\n### 💡 Tips\n- Gunakan gambar dengan ukuran optimal untuk web\n- Format gambar akan di-convert ke WebP untuk optimasi\n- File otomatis disimpan di Minio storage\n- Gunakan judul yang menarik dan deskripsi yang jelas\n\n### 🖼️ Image Processing\n- File gambar di-convert ke WebP otomatis\n- Nama file: banner-{timestamp}.webp\n- Disimpan di Minio storage\n- URL otomatis dibuat dan disimpan di database"
+          },
+          "response": []
+        },
+        {
+          "name": "🔍 Get Banner by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banners/{{banner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners", "{{banner_id}}"]
+            },
+            "description": "## 🔍 Get Banner by ID\n\n### Deskripsi\nMengambil detail banner berdasarkan ID.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **banner_id** (path): ID banner yang akan diambil\n\n### 📤 Response\n- **Success**: Detail banner lengkap\n- **Error**: Banner tidak ditemukan\n\n### 💡 Tips\n- Gunakan untuk edit banner di admin panel\n- Response termasuk data pembuat (admin)\n- URL gambar lengkap disertakan"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update Banner",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Updated Promo Spesial",
+                  "description": "Judul banner (opsional, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Updated deskripsi promo diskon hingga 70%",
+                  "description": "Deskripsi banner (opsional)",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "src": [],
+                  "description": "File gambar baru (opsional, format: jpeg,png,jpg,gif,webp)",
+                  "type": "file"
+                },
+                {
+                  "key": "target_url",
+                  "value": "https://example.com/promo-updated",
+                  "description": "URL target baru (opsional)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "1",
+                  "description": "Status aktif baru (opsional: 0=non-aktif, 1=aktif)",
+                  "type": "text"
+                },
+                {
+                  "key": "order",
+                  "value": "2",
+                  "description": "Urutan tampil baru (opsional)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/banners/{{banner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners", "{{banner_id}}"]
+            },
+            "description": "## ✏️ Update Banner\n\n### Deskripsi\nMengupdate banner yang sudah ada, termasuk opsi untuk mengganti gambar.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **title** (opsional): Judul banner baru\n- **description** (opsional): Deskripsi banner baru\n- **image** (opsional): File gambar baru untuk mengganti\n- **target_url** (opsional): URL target baru\n- **is_active** (opsional): Status aktif baru\n- **order** (opsional): Urutan tampil baru\n\n### 📤 Response\n- **Success**: Banner berhasil diupdate\n- **Error**: Banner tidak ditemukan, validasi gagal\n\n### 💡 Tips\n- Gambar lama otomatis dihapus jika upload gambar baru\n- Gunakan untuk mengupdate konten banner yang sudah ada\n- Perhatikan bahwa semua field bersifat opsional\n- Admin ID akan otomatis diupdate dengan user yang sedang login\n\n### ⚠️ Warning\n- Jika upload gambar baru, gambar lama akan dihapus permanen\n- Pastikan Anda memiliki backup gambar penting"
+          },
+          "response": []
+        },
+        {
+          "name": "🔄 Update Banner Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "is_active",
+                  "value": "0",
+                  "description": "Status banner (wajib diisi: 0=non-aktif, 1=aktif)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/banners/{{banner_id}}/active",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners", "{{banner_id}}", "active"]
+            },
+            "description": "## 🔄 Update Banner Status\n\n### Deskripsi\nMengupdate status aktif/non-aktif banner.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **is_active** (wajib): Status aktif (0=non-aktif, 1=aktif)\n\n### 📤 Response\n- **Success**: Status banner berhasil diupdate\n- **Error**: Banner tidak ditemukan\n\n### 💡 Tips\n- Gunakan untuk mengaktifkan/menonaktifkan banner\n- Banner non-aktif tidak akan muncul di endpoint publik\n- Berguna untuk seasonal promos atau maintenance\n- Status dapat diubah kapan saja tanpa menghapus banner"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Delete Banner",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banners/{{banner_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banners", "{{banner_id}}"]
+            },
+            "description": "## 🗑️ Delete Banner\n\n### Deskripsi\nMenghapus banner beserta gambar dari storage.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **banner_id** (path): ID banner yang akan dihapus\n\n### 📤 Response\n- **Success**: Banner dan gambar berhasil dihapus\n- **Error**: Banner tidak ditemukan\n\n### 💡 Tips\n- Gambar otomatis dihapus dari Minio storage\n- Data banner dihapus permanen dari database\n- Gunakan dengan hati-hati, operasi tidak bisa dibatalkan\n- Pertimbangkan untuk menonaktifkan banner terlebih dahulu\n\n### ⚠️ Warning\n- TIDAK BISA DI-UNDO\n- Banner dan gambar akan hilang permanen\n- Pastikan Anda memiliki otoritas untuk menghapus banner"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📍 User Address",
+      "description": "Endpoint untuk manajemen alamat pengguna (memerlukan autentikasi)",
+      "item": [
+        {
+          "name": "📋 Get User Addresses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user-address/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-address", "{{user_id}}"]
+            },
+            "description": "## 📋 Get User Addresses\n\n### Deskripsi\nMengambil semua alamat pengguna berdasarkan user ID dengan data lokasi lengkap.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna\n\n### 📤 Response\n- **Success**: Daftar alamat dengan data lokasi lengkap\n- **Error**: User tidak ditemukan atau tidak memiliki alamat\n\n### 💡 Tips\n- Response termasuk data provinsi, kota, kecamatan, kode pos\n- Alamat diurutkan berdasarkan is_primary (primary address first)\n- Gunakan user_id yang sudah disimpan setelah login\n- Berguna untuk halaman profil dan checkout\n\n### 📊 Response Format\n- **provinces**: Nama provinsi\n- **cities**: Nama kota\n- **subdistricts**: Nama kecamatan\n- **postal_codes**: Kode pos\n- **is_primary**: Apakah alamat utama (1 = ya, 0 = tidak)"
+          },
+          "response": []
+        },
+        {
+          "name": "➕ Create New Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name_receiver\": \"John Doe\",\n    \"number_receiver\": \"+6281234567890\",\n    \"full_address\": \"Jl. Sudirman No. 123, KECAMATAN MENTENG, KOTA JAKARTA PUSAT, DKI JAKARTA, 10310\",\n    \"detail_address\": \"Apartemen Sudirman Suite, Lantai 15\",\n    \"lat\": \"-6.2088\",\n    \"long\": \"106.8456\",\n    \"is_primary\": 1,\n    \"is_store\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user-address/create/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-address", "create", "{{user_id}}"]
+            },
+            "description": "## ➕ Create New Address\n\n### Deskripsi\nMembuat alamat baru untuk pengguna dengan validasi lokasi Indonesia.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Request Body (JSON)\n- **name_receiver** (wajib): Nama penerima\n- **number_receiver** (wajib): Nomor telepon penerima\n- **full_address** (wajib): Format alamat lengkap\n- **detail_address** (wajib): Detail alamat\n- **lat** (wajib): Koordinat latitude\n- **long** (wajib): Koordinat longitude\n- **is_primary** (wajib): Status primary (1/0)\n- **is_store** (wajib): Status toko (1/0)\n\n### 📤 Response\n- **Success**: Alamat berhasil dibuat dengan validasi lokasi\n- **Error**: Lokasi tidak valid, format alamat salah\n\n### 💡 Tips\n- Format full_address: 'Jalan, KECAMATAN Nama, KOTA Nama, PROVINSI Nama, Kode Pos'\n- Gunakan nama kecamatan dengan prefix 'KECAMATAN '\n- Koordinat dalam format decimal degrees\n- Jika is_primary=1, alamat primary lain otomatis di-reset\n\n### 📍 Location Format\nContoh valid format:\n\"Jl. Sudirman No. 123, KECAMATAN MENTENG, KOTA JAKARTA PUSAT, DKI JAKARTA, 10310\"\n\n### ⚠️ Validation\n- Sistem akan memvalidasi kecamatan, kota, provinsi di database\n- Kode pos harus cocok dengan kecamatan\n- Format alamat harus sesuai dengan hierarki Indonesia"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name_receiver\": \"John Doe Updated\",\n    \"number_receiver\": \"+6281234567891\",\n    \"full_address\": \"Jl. Thamrin No. 456, KECAMATAN MENTENG, KOTA JAKARTA PUSAT, DKI JAKARTA, 10310\",\n    \"detail_address\": \"Gedung Thamrin, Lantai 20\",\n    \"lat\": \"-6.2088\",\n    \"long\": \"106.8456\",\n    \"is_primary\": 1,\n    \"is_store\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user-address/{{address_id}}/edit",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-address", "{{address_id}}", "edit"]
+            },
+            "description": "## ✏️ Update Address\n\n### Deskripsi\nMengupdate data alamat pengguna yang sudah ada.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Request Body (JSON)\n- **name_receiver** (wajib): Nama penerima baru\n- **number_receiver** (wajib): Nomor telepon penerima baru\n- **full_address** (wajib): Format alamat lengkap baru\n- **detail_address** (wajib): Detail alamat baru\n- **lat** (wajib): Koordinat latitude baru\n- **long** (wajib): Koordinat longitude baru\n- **is_primary** (wajib): Status primary baru\n- **is_store** (wajib): Status toko baru\n\n### 📤 Response\n- **Success**: Alamat berhasil diupdate dengan validasi lokasi\n- **Error**: Alamat tidak ditemukan, lokasi tidak valid\n\n### 💡 Tips\n- Gunakan address_id dari response Get User Addresses\n- Format alamat harus sama dengan saat create\n- Jika is_primary=1, alamat primary lain akan di-reset\n- Semua field wajib diisi saat update\n\n### 🔄 Update Logic\n- Validasi lokasi baru terhadap database Indonesia\n- Update semua field alamat\n- Maintain primary address logic\n- Update timestamps untuk audit trail"
+          },
+          "response": []
+        },
+        {
+          "name": "⭐ Set as Primary Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user-address/{{address_id}}/edit-status",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-address", "{{address_id}}", "edit-status"]
+            },
+            "description": "## ⭐ Set as Primary Address\n\n### Deskripsi\nMengubah status alamat menjadi alamat utama atau non-utama.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **address_id** (path): ID alamat yang akan dijadikan primary\n\n### 📤 Response\n- **Success**: Status primary berhasil diupdate\n- **Error**: Alamat tidak ditemukan\n\n### 💡 Tips\n- Hanya satu alamat yang bisa menjadi primary per user\n- Alamat primary lain otomatis di-set ke non-primary\n- Gunakan untuk mengubah alamat default pengiriman\n- Primary address digunakan sebagai default di checkout\n\n### 🔄 Primary Logic\n- Set address ini sebagai primary (is_primary = 1)\n- Reset semua alamat lain menjadi non-primary\n- Berguna saat user pindah atau ganti alamat utama\n- Memastikan hanya satu alamat primary per user"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Delete Address",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user-address/{{address_id}}/delete",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-address", "{{address_id}}", "delete"]
+            },
+            "description": "## 🗑️ Delete Address\n\n### Deskripsi\nMenghapus alamat pengguna dari sistem.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **address_id** (path): ID alamat yang akan dihapus\n\n### 📤 Response\n- **Success**: Alamat berhasil dihapus\n- **Error**: Alamat tidak ditemukan\n\n### 💡 Tips\n- Operasi ini tidak dapat dibatalkan\n- Gunakan dengan hati-hati\n- Pastikan user memiliki alamat lain jika menghapus primary address\n- Pertimbangkan untuk menonaktifkan alamat terlebih dahulu\n\n### ⚠️ Warning\n- TIDAK BISA DI-UNDO\n- Alamat akan hilang permanen dari database\n- Jika menghapus primary address, user harus punya alamat lain\n- Pastikan Anda memiliki otoritas untuk menghapus alamat\n\n### 🔄 Alternative\n- Pertimbangkan untuk menonaktifkan alamat alih-alih menghapus\n- Keep address history untuk audit trail\n- Gunakan soft delete jika diperlukan"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management",
+      "description": "Endpoint untuk manajemen pengguna (memerlukan autentikasi admin/user)",
+      "item": [
+        {
+          "name": "➕ Tambah User Baru",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe",
+                  "description": "Nama lengkap pengguna (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "john.doe@example.com",
+                  "description": "Email pengguna (wajib diisi, format email valid, harus unik)",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "description": "Password pengguna (wajib diisi, minimal 6 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "user",
+                  "description": "Role pengguna (wajib diisi, pilihan: user, admin, seller)",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "john_doe",
+                  "description": "Username pengguna (wajib diisi, harus unik)",
+                  "type": "text"
+                },
+                {
+                  "key": "whatsapp",
+                  "value": "+6281234567890",
+                  "description": "Nomor WhatsApp pengguna (opsional)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user"]
+            },
+            "description": "## ➕ Tambah User Baru\n\n### Deskripsi\nMendaftarkan pengguna baru di sistem (hanya dapat diakses oleh admin atau user yang sudah terautentikasi).\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name** (wajib): Nama lengkap, maksimal 255 karakter\n- **email** (wajib): Email valid dan unik\n- **password** (wajib): Minimal 6 karakter\n- **role** (wajib): Pilihan role (user/admin/seller)\n- **username** (wajib): Username unik\n- **whatsapp** (opsional): Nomor WhatsApp\n\n### 📤 Response\n- **Success**: User berhasil dibuat, token JWT dibuat\n- **Error**: Email sudah terdaftar, validasi gagal\n\n### 💡 Tips\n- Gunakan email yang valid dan belum terdaftar\n- Username harus unik di seluruh sistem\n- Password minimal 6 karakter untuk keamanan\n- Role 'user' untuk pengguna biasa, 'admin' untuk administrator"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update User Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe Updated",
+                  "description": "Nama lengkap pengguna (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "john_doe_updated",
+                  "description": "Username pengguna (wajib diisi, harus unik kecuali untuk user ini)",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "john.updated@example.com",
+                  "description": "Email pengguna (wajib diisi, format email valid, harus unik kecuali untuk user ini)",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "user",
+                  "description": "Role pengguna (wajib diisi, pilihan: user, admin, seller)",
+                  "type": "text"
+                },
+                {
+                  "key": "whatsapp",
+                  "value": "+6281234567890",
+                  "description": "Nomor WhatsApp pengguna (wajib diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "newpassword123",
+                  "description": "Password baru (opsional, minimal 6 karakter jika diisi)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user", "{{user_id}}"]
+            },
+            "description": "## ✏️ Update User Data\n\n### Deskripsi\nMengupdate data pengguna yang sudah ada.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name** (wajib): Nama lengkap, maksimal 255 karakter\n- **username** (wajib): Username unik (kecuali user ini sendiri)\n- **email** (wajib): Email valid dan unik (kecuali user ini sendiri)\n- **role** (wajib): Pilihan role (user/admin/seller)\n- **whatsapp** (wajib): Nomor WhatsApp\n- **password** (opsional): Password baru, minimal 6 karakter\n\n### 📤 Response\n- **Success**: Data user berhasil diupdate, token juga diupdate jika email berubah\n- **Error**: User tidak ditemukan, email sudah digunakan user lain\n\n### 💡 Tips\n- Gunakan user_id yang valid\n- Email dan username harus unik kecuali untuk user yang sedang diupdate\n- Jika update email, token juga akan diupdate\n- Password hanya perlu diisi jika ingin mengubah password"
+          },
+          "response": []
+        },
+        {
+          "name": "🔄 Update Status User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "status",
+                  "value": "1",
+                  "description": "Status user (wajib diisi, pilihan: 0=non-aktif, 1=aktif)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user/{{user_id}}/update-status",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user", "{{user_id}}", "update-status"]
+            },
+            "description": "## 🔄 Update Status User\n\n### Deskripsi\nMengupdate status aktif/non-aktif pengguna.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **status** (wajib): Pilihan status (0=non-aktif, 1=aktif)\n\n### 📤 Response\n- **Success**: Status user berhasil diupdate\n- **Error**: User tidak ditemukan, validasi gagal\n\n### 💡 Tips\n- Gunakan status=1 untuk mengaktifkan user\n- Gunakan status=0 untuk menon-aktifkan user\n- Jika status=0, field 'expierd' akan diisi dengan tanggal saat ini\n- Gunakan ini untuk manage user access"
+          },
+          "response": []
+        },
+        {
+          "name": "📋 Daftar Semua User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user?role=user&is_active=1&search=john&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "user",
+                  "description": "Filter berdasarkan role (opsional: user, admin, seller)",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "1",
+                  "description": "Filter berdasarkan status aktif (opsional: 0, 1)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "john",
+                  "description": "Pencarian berdasarkan nama, username, atau email (opsional)",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "10",
+                  "description": "Jumlah data per halaman (default: 10)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "## 📋 Daftar Semua User\n\n### Deskripsi\nMengambil daftar semua pengguna dengan opsi filter dan pagination.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Query Parameters\n- **role** (opsional): Filter role (user/admin/seller)\n- **is_active** (opsional): Filter status (0=non-aktif, 1=aktif)\n- **search** (opsional): Pencarian di nama, username, email\n- **per_page** (opsional): Jumlah data per halaman (default: 10)\n\n### 📤 Response\n- **Success**: Daftar user dengan pagination\n- **Error**: Tidak ada data yang ditemukan\n\n### 💡 Tips\n- Gunakan pagination untuk data yang besar\n- Filter by role untuk mendapatkan user spesifik\n- Gunakan search untuk mencari user tertentu\n- Password otomatis dihilangkan dari response untuk keamanan\n\n### 📊 Pagination\nResponse includes:\n- current_page: Halaman saat ini\n- per_page: Data per halaman\n- total: Total semua data\n- last_page: Total halaman\n- from, to: Range data di halaman ini"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Hapus User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user", "{{user_id}}"]
+            },
+            "description": "## 🗑️ Hapus User\n\n### Deskripsi\nMenghapus pengguna dari sistem beserta token yang terkait.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna yang akan dihapus\n\n### 📤 Response\n- **Success**: User dan token berhasil dihapus\n- **Error**: User tidak ditemukan, server error\n\n### 💡 Tips\n- Operasi ini tidak dapat dibatalkan (hard delete)\n- User dan semua token terkait akan dihapus permanen\n- Gunakan dengan hati-hati dan pastikan user_id yang benar\n- Pertimbangkan untuk backup data penting sebelum menghapus\n\n### ⚠️ Warning\n- TIDAK BISA DI-UNDO\n- Data user akan hilang permanen\n- Pastikan Anda memiliki otoritas untuk menghapus user"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏦 Bank Management",
+      "description": "Endpoint untuk manajemen bank (memerlukan autentikasi)",
+      "item": [
+        {
+          "name": "📋 Get All Banks",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banks",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banks"]
+            },
+            "description": "## 📋 Get All Banks\n\n### Deskripsi\nMengambil semua data bank yang tersedia di sistem.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Query Parameters\nTidak ada parameter yang diperlukan.\n\n### 📤 Response\n- **Success**: Daftar semua bank dengan icon URL (jika ada)\n- **Error**: Server error, database connection issue\n\n### 💡 Tips\n- Response termasuk nama bank dan icon URL\n- Icon bisa null jika bank belum memiliki icon\n- Berguna untuk payment method selection\n- Data banks diurutkan berdasarkan created_at"
+          },
+          "response": []
+        },
+        {
+          "name": "➕ Create New Bank",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name_bank",
+                  "value": "Bank Central Asia",
+                  "description": "Nama bank (wajib diisi, string)",
+                  "type": "text"
+                },
+                {
+                  "key": "icon",
+                  "src": [],
+                  "description": "Icon bank (opsional, file gambar, max 2MB, format: jpeg,png,jpg,gif,webp)",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/banks",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banks"]
+            },
+            "description": "## ➕ Create New Bank\n\n### Deskripsi\nMembuat data bank baru dengan opsional upload icon.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name_bank** (wajib): Nama bank (string)\n- **icon** (opsional): File gambar icon bank, maksimal 2MB, format: jpeg, png, jpg, gif, webp\n\n### 📤 Response\n- **Success**: Bank berhasil dibuat dengan icon (jika di-upload)\n- **Error**: Validasi gagal, file tidak valid, server error\n\n### 💡 Tips\n- Gunakan nama bank yang standar (mis: Bank Central Asia, Bank Negara Indonesia)\n- Icon bersifat opsional tapi direkomendasikan untuk UI yang lebih baik\n- File icon akan di-upload ke Minio storage\n- Nama bank harus unik di sistem\n\n### 🖼️ Icon Processing\n- File icon di-convert ke WebP untuk optimasi\n- Nama file otomatis di-generate untuk keamanan\n- Disimpan di path: bank-icons/\n- URL icon disimpan di database untuk akses publik"
+          },
+          "response": []
+        },
+        {
+          "name": "🔍 Get Bank by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banks/{{bank_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banks", "{{bank_id}}"]
+            },
+            "description": "## 🔍 Get Bank by ID\n\n### Deskripsi\nMengambil detail bank berdasarkan ID.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **bank_id** (path): ID bank yang akan diambil\n\n### 📤 Response\n- **Success**: Detail bank lengkap dengan icon URL\n- **Error**: Bank tidak ditemukan\n\n### 💡 Tips\n- Gunakan bank_id dari response Get All Banks\n- Response termasuk icon URL lengkap jika ada\n- Berguna untuk edit bank di admin panel\n- Created_at dan updated_at disertakan untuk audit trail"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update Bank",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name_bank",
+                  "value": "Bank Central Asia Updated",
+                  "description": "Nama bank baru (opsional, string)",
+                  "type": "text"
+                },
+                {
+                  "key": "icon",
+                  "src": [],
+                  "description": "Icon bank baru (opsional, file gambar, max 2MB, format: jpeg,png,jpg,gif,webp)",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/banks/{{bank_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banks", "{{bank_id}}"]
+            },
+            "description": "## ✏️ Update Bank\n\n### Deskripsi\nMengupdate data bank yang sudah ada, termasuk opsi untuk mengganti icon.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name_bank** (opsional): Nama bank baru\n- **icon** (opsional): File gambar icon baru, maksimal 2MB\n\n### 📤 Response\n- **Success**: Bank berhasil diupdate, icon lama otomatis dihapus jika diganti\n- **Error**: Bank tidak ditemukan, validasi gagal\n\n### 💡 Tips\n- Icon lama otomatis dihapus dari Minio jika upload icon baru\n- Gunakan untuk mengupdate nama bank yang sudah ada\n- Semua field bersifat opsional (update partial)\n- Updated_at akan otomatis diupdate\n\n### ⚠️ Warning\n- Jika upload icon baru, icon lama akan dihapus permanen\n- Pastikan Anda memiliki backup icon penting\n- Nama bank harus tetap unik di sistem"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Delete Bank",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/banks/{{bank_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "banks", "{{bank_id}}"]
+            },
+            "description": "## 🗑️ Delete Bank\n\n### Deskripsi\nMenghapus bank beserta icon dari storage.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **bank_id** (path): ID bank yang akan dihapus\n\n### 📤 Response\n- **Success**: Bank dan icon berhasil dihapus permanen\n- **Error**: Bank tidak ditemukan\n\n### 💡 Tips\n- Icon bank otomatis dihapus dari Minio storage\n- Data bank dihapus permanen dari database\n- Operasi ini tidak dapat dibatalkan\n- Pastikan bank tidak digunakan dalam transaksi aktif\n\n### ⚠️ Warning\n- TIDAK BISA DI-UNDO\n- Bank dan icon akan hilang permanen\n- Pastikan Anda memiliki otoritas untuk menghapus bank\n- Pertimbangkan untuk menonaktifkan bank alih-alih menghapus\n\n### 🔄 Alternative\n- Pertimbangkan soft delete jika diperlukan untuk audit trail\n- Archive data bank yang sudah tidak aktif"
           },
           "response": []
         }
