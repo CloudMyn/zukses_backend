@@ -40,87 +40,118 @@ class UsersController extends Controller
             'birthDate' => 'required|date',
         ]);
 
-        if ($validator->fails()) {
-            return $this->utilityService->is422Response($validator->errors()->first());
-        }
+        try {
 
-        $user = User::where("email", $request->contact)
-            ->orWhere("whatsapp", $request->contact)
-            ->first();
+            DB::beginTransaction();
 
-        if ($user) {
-            return $this->utilityService->is422Response("Email atau WhatsApp sudah digunakan");
-        }
+            if ($validator->fails()) {
+                return $this->utilityService->is422Response($validator->errors()->first());
+            }
 
-        $chars = 'abcdefghijklmnopqrstuvwxyz';
-        $randomString = '';
+            $user = User::where("email", $request->contact)
+                ->orWhere("whatsapp", $request->contact)
+                ->first();
 
-        for ($i = 0; $i < 6; $i++) {
-            $randomString .= $chars[random_int(0, strlen($chars) - 1)];
-        }
-        $isEmail = filter_var($request->contact, FILTER_VALIDATE_EMAIL);
-        $data = [
-            "name" => $request->fullName,
-            "email" => $isEmail ? $request->contact : null,
-            "whatsapp" => $isEmail ? null : $request->contact,
-            "password" => app("hash")->make(env('PASSWORD_DEFAULT')),
-            "role" => $request->role,
-            'username' => $randomString,
-            'start' => Carbon::now()->toDateString(),
-            'status' => 1,
-        ];
+            if ($user) {
+                return $this->utilityService->is422Response("Email atau WhatsApp sudah digunakan");
+            }
 
-        $dataWithoutPassword = [
-            'username' => $randomString,
-            "name" => $request->name,
-            "email" => $request->contact,
-            "role" => $request->role,
-            "whatsapp" => $isEmail ? null : $request->contact,
-        ];
+            $chars = 'abcdefghijklmnopqrstuvwxyz';
+            $randomString = '';
 
-        $insert = Users::create($data);
-
-        if ($insert) {
-            // $success_message = "success registration for your user";
-            // return $this->utilityService->is200Response($success_message);
-            $user = User::where("email", $request->contact)->first();
-            $dataProfile = [
-                'user_id' => $user->id,
-                'name' => $request->fullName,
-                'gender' => $request->gender,
-                'date_birth' => $request->birthDate,
+            for ($i = 0; $i < 6; $i++) {
+                $randomString .= $chars[random_int(0, strlen($chars) - 1)];
+            }
+            $isEmail = filter_var($request->contact, FILTER_VALIDATE_EMAIL);
+            $data = [
+                "name" => $request->fullName,
+                "email" => $isEmail ? $request->contact : null,
+                "whatsapp" => $isEmail ? null : $request->contact,
+                "password" => app("hash")->make(env('PASSWORD_DEFAULT')),
+                "role" => $request->role,
+                'username' => $randomString,
+                'start' => Carbon::now()->toDateString(),
+                'status' => 1,
             ];
-            UserProfile::create($dataProfile);
-            // $user = DB::table('users')->orderBy('id', 'desc')->first();
+
             $dataWithoutPassword = [
                 'username' => $randomString,
-                "name" => $request->fullName,
+                "name" => $request->name,
                 "email" => $request->contact,
-                'id' => $user->id,
                 "role" => $request->role,
                 "whatsapp" => $isEmail ? null : $request->contact,
             ];
-            $contact = $request->contact;
-            $password = env('PASSWORD_DEFAULT');
 
-            // Cek apakah contact adalah email atau nomor HP
-            $fieldType = filter_var($contact, FILTER_VALIDATE_EMAIL) ? 'email' : 'whatsapp';
+            $insert = Users::create($data);
 
-            // Set credentials dinamis sesuai jenis contact
-            $credentials = [
-                $fieldType => $contact,
-                'password' => $password,
-            ];
-            $token = Auth::guard('users')->attempt($credentials);
-            Token::create([
-                'token' => $token,
-                'email' => $request->contact,
-                'is_active' => 0
-            ]);
+            if ($insert) {
+                // $success_message = "success registration for your user";
+                // return $this->utilityService->is200Response($success_message);
 
-            return $this->respondWithToken($token, $dataWithoutPassword);
-        } else {
-            return $this->utilityService->is500Response("problem with server");
+                // Cari user yang baru dibuat berdasarkan contact (email atau whatsapp)
+                if ($isEmail) {
+                    $user = User::where("email", $request->contact)->first();
+                } else {
+                    $user = User::where("whatsapp", $request->contact)->first();
+                }
+
+                // Pastikan user ditemukan sebelum melanjutkan
+                if (!$user) {
+                    return $this->utilityService->is500Response("Terjadi kesalahan saat membuat user");
+                }
+
+                $dataProfile = [
+                    'user_id' => $user->id,
+                    'name' => $request->fullName,
+                    'gender' => $request->gender,
+                    'date_birth' => $request->birthDate,
+                ];
+                UserProfile::create($dataProfile);
+
+                $dataWithoutPassword = [
+                    'username' => $randomString,
+                    "name" => $request->fullName,
+                    "email" => !$isEmail ? $request->contact : $user->email,
+                    'id' => $user->id,
+                    "role" => $request->role,
+                    "whatsapp" => $isEmail ? null : $request->contact,
+                ];
+                $contact = $request->contact;
+                $password = env('PASSWORD_DEFAULT');
+
+                // Cek apakah contact adalah email atau nomor HP
+                $fieldType = filter_var($contact, FILTER_VALIDATE_EMAIL) ? 'email' : 'whatsapp';
+
+                // Set credentials dinamis sesuai jenis contact
+                $credentials = [
+                    $fieldType => $contact,
+                    'password' => $password,
+                ];
+                $token = Auth::guard('users')->attempt($credentials);
+                // Untuk token, gunakan email user yang valid dari database
+                // Jika contact adalah nomor telepon, gunakan email dari user
+                $tokenEmail = !$isEmail ? $request->contact : $user->email;
+
+                Token::create([
+                    'token' => $token,
+                    'email' => $tokenEmail,
+                    'is_active' => 0
+                ]);
+
+                DB::commit();
+
+                return $this->respondWithToken($token, $dataWithoutPassword);
+            } else {
+
+                DB::rollBack();
+                return $this->utilityService->is500Response("problem with server");
+            }
+
+            // ...
+        } catch (\Throwable $th) {
+
+            DB::rollBack();
+            return $this->utilityService->is500Response($th->getMessage());
         }
     }
     public function checkAccount(Request $request)
@@ -330,9 +361,13 @@ class UsersController extends Controller
                 'password' => $password,
             ];
             $token = Auth::guard('users')->attempt($credentials);
+            // Untuk token, gunakan email user yang valid dari database
+            // Jika contact adalah nomor telepon, gunakan email dari user
+            $tokenEmail = $isEmail ? $request->contact : $user->email;
+
             Token::create([
                 'token' => $token,
-                'email' => $request->contact,
+                'email' => $tokenEmail,
                 'is_active' => 0
             ]);
 
@@ -401,8 +436,8 @@ class UsersController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'username' => 'required|string|unique:users,username,'.$id,
-            'email' => 'required|email|unique:users,email,'.$id,
+            'username' => 'required|string|unique:users,username,' . $id,
+            'email' => 'required|email|unique:users,email,' . $id,
             'role' => 'required|string|in:user,admin,seller',
             'password' => 'nullable|string|min:6',
         ]);
@@ -478,10 +513,10 @@ class UsersController extends Controller
 
     public function index(Request $request)
     {
-        $role       = $request->get('role');
-        $isActive   = $request->get('is_active');  // 0 atau 1
-        $search     = $request->get('search');
-        $perPage    = $request->get('per_page', 10);
+        $role = $request->get('role');
+        $isActive = $request->get('is_active');  // 0 atau 1
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
 
         $query = DB::table('users')
             ->when(!empty($role), function ($query) use ($role) {
@@ -511,11 +546,11 @@ class UsersController extends Controller
 
         $meta = [
             'current_page' => $data->currentPage(),
-            'per_page'     => $data->perPage(),
-            'total'        => $data->total(),
-            'last_page'    => $data->lastPage(),
-            'from'         => $data->firstItem(),
-            'to'           => $data->lastItem(),
+            'per_page' => $data->perPage(),
+            'total' => $data->total(),
+            'last_page' => $data->lastPage(),
+            'from' => $data->firstItem(),
+            'to' => $data->lastItem(),
         ];
 
         if ($items->isNotEmpty()) {
@@ -736,7 +771,7 @@ class UsersController extends Controller
                     } else {
 
                         $dataWithoutPassword = [
-                            'username' =>  $whatsapp->username,
+                            'username' => $whatsapp->username,
                             "name" => $whatsapp->name,
                             "email" => $whatsapp->email,
                             "id" => $whatsapp->id,
@@ -929,7 +964,7 @@ class UsersController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$id,
+            'email' => 'required|email|unique:users,email,' . $id,
             'whatsapp' => 'required|string',
             'role' => 'required|string|in:user,admin,seller',
             'password' => 'nullable|string|min:6',
@@ -1060,6 +1095,9 @@ class UsersController extends Controller
         }
 
         $data = $token ?: ($tokens->token ?? null);
+
+        $user->whatsapp = "$user->whatsapp";
+
         return $this->respondWithToken($data, $user);
     }
 

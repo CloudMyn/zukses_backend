@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 
 class AuthController extends Controller
@@ -315,6 +316,8 @@ class AuthController extends Controller
             'target' => $whatsapp,
             'message' => $message
         ];
+
+        Log::info("🔔 Mengirim OTP via WhatsApp : " . $otp);
 
         $curl = curl_init();
         curl_setopt_array($curl, [

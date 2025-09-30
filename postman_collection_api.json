@@ -1,0 +1,729 @@
+{
+  "info": {
+    "name": "Zukses Backend API - Koleksi Lengkap",
+    "description": "# 🚀 Zukses Backend API Collection\n\n## 📋 Deskripsi\nKoleksi Postman ini berisi semua endpoint API untuk sistem Zukses Backend termasuk:\n- **Autentikasi** (Login, Register, OTP, Google OAuth)\n- **User Profile** (Manajemen profil pengguna)\n\n## 🔐 Autentikasi\nSemua endpoint kecuali endpoint publik memerlukan Bearer Token. Token akan otomatis disimpan setelah login berhasil.\n\n## 📝 Cara Penggunaan\n1. Import file ini ke Postman\n2. Jalankan endpoint **Login User** untuk mendapatkan token\n3. Token akan otomatis digunakan untuk semua endpoint yang memerlukan autentikasi\n4. Gunakan environment variable `{{base_url}}` untuk base URL\n\n## ⚙️ Environment Variables yang Diperlukan\n- `base_url` - URL base API (contoh: https://api.zukses.com)\n\n## 🛡️ Keamanan\n- Header `Accept: application/json` otomatis ditambahkan\n- Bearer Token otomatis di-set untuk endpoint yang memerlukan autentikasi\n- Form-data validation untuk setiap endpoint\n\n## 📞 Support\nUntuk informasi lebih lanjut, hubungi tim development Zukses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "zukses-backend-api-collection",
+    "_exporter_id": "zukses-exporter"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearer_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://your-domain.com",
+      "type": "string"
+    },
+    {
+      "key": "bearer_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autentikasi",
+      "description": "Endpoint untuk proses autentikasi user dan admin",
+      "item": [
+        {
+          "name": "📝 Register User Baru",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "contact",
+                  "value": "john@example.com",
+                  "description": "Email atau nomor WhatsApp (wajib diisi, harus valid email atau nomor telepon)",
+                  "type": "text"
+                },
+                {
+                  "key": "fullName",
+                  "value": "John Doe",
+                  "description": "Nama lengkap pengguna (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "role",
+                  "value": "user",
+                  "description": "Role pengguna (wajib diisi, pilihan: user, admin, seller)",
+                  "type": "text"
+                },
+                {
+                  "key": "gender",
+                  "value": "Laki-laki",
+                  "description": "Jenis kelamin (wajib diisi, pilihan: Laki-laki, Perempuan)",
+                  "type": "text"
+                },
+                {
+                  "key": "birthDate",
+                  "value": "1990-01-01",
+                  "description": "Tanggal lahir (wajib diisi, format YYYY-MM-DD)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "register"]
+            },
+            "description": "## 📝 Register User Baru\n\n### Deskripsi\nMendaftarkan pengguna baru dengan sistem verifikasi OTP.\n\n### 🔧 Validasi Form Data\n- **contact** (wajib): Email atau nomor WhatsApp yang valid\n- **fullName** (wajib): Nama lengkap, maksimal 255 karakter\n- **role** (wajib): Pilihan role (user/admin/seller)\n- **gender** (wajib): Jenis kelamin (Laki-laki/Perempuan)\n- **birthDate** (wajib): Tanggal lahir format YYYY-MM-DD\n\n### 📤 Response\n- **Success**: Token JWT dan data user dikembalikan\n- **Error**: Contact sudah terdaftar, validasi gagal\n\n### 💡 Tips\n- Gunakan email valid untuk menerima OTP\n- Format tanggal harus YYYY-MM-DD\n- Role 'user' untuk pengguna biasa"
+          },
+          "response": []
+        },
+        {
+          "name": "🔍 Cek Ketersediaan Akun",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "contact",
+                  "value": "john@example.com",
+                  "description": "Email atau nomor WhatsApp yang akan dicek (wajib diisi)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/check-account",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "check-account"]
+            },
+            "description": "## 🔍 Cek Ketersediaan Akun\n\n### Deskripsi\nMemeriksa ketersediaan email/WhatsApp dan mengirim OTP untuk verifikasi.\n\n### 🔧 Validasi Form Data\n- **contact** (wajib): Email atau nomor telepon yang valid\n\n### 📤 Response\n- **Success**: OTP dikirim ke email/WhatsApp\n- **Error**: Contact sudah terdaftar di sistem\n\n### 💡 Tips\n- Jika contact email: OTP dikirim via email\n- Jika contact nomor HP: OTP dikirim via WhatsApp\n- Gunakan ini sebelum register untuk memastikan contact available"
+          },
+          "response": []
+        },
+        {
+          "name": "🔑 Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "contact",
+                  "value": "john@example.com",
+                  "description": "Email atau nomor WhatsApp (wajib diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "description": "Password (opsional, jika kosong akan menggunakan default password)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login"]
+            },
+            "description": "## 🔑 Login User\n\n### Deskripsi\nLogin pengguna dengan email/WhatsApp dan password.\n\n### 🔧 Validasi Form Data\n- **contact** (wajib): Email atau nomor WhatsApp yang terdaftar\n- **password** (opsional): Password user (jika kosong akan gunakan default)\n\n### 📤 Response\n- **Success**: Token JWT dan data user lengkap\n- **Error**: Akun tidak ditemukan, password salah\n\n### 💡 Tips\n- **⚠️ PENTING**: Token akan otomatis disimpan di collection variable\n- Setelah login berhasil, semua endpoint lain akan otomatis menggunakan token\n- Gunakan contact yang sudah terdaftar di sistem\n- Password bisa dikosongkan jika ingin menggunakan default password\n\n### 🔄 Auto-Token Setup\nEndpoint ini akan otomatis:\n1. Menyimpan token ke variable `bearer_token`\n2. Meng-set authentication untuk semua endpoint berikutnya\n3. Memungkinkan akses ke endpoint yang memerlukan autentikasi"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test script untuk auto-save token\npm.test(\"Status response sukses\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response memiliki struktur data yang benar\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Simpan token ke collection variable untuk auto-authentication",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set(\"bearer_token\", jsonData.data.token);",
+                  "        console.log(\"✅ Token berhasil disimpan: \" + jsonData.data.token);",
+                  "        ",
+                  "        // Juga simpan user data untuk keperluan testing",
+                  "        if (jsonData.data.user && jsonData.data.user.id) {",
+                  "            pm.collectionVariables.set(\"user_id\", jsonData.data.user.id.toString());",
+                  "            console.log(\"✅ User ID disimpan: \" + jsonData.data.user.id);",
+                  "        }",
+                  "        ",
+                  "        if (jsonData.data.user && jsonData.data.user.email) {",
+                  "            pm.collectionVariables.set(\"user_email\", jsonData.data.user.email);",
+                  "            console.log(\"✅ User email disimpan: \" + jsonData.data.user.email);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "👨‍💼 Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "contact",
+                  "value": "admin@example.com",
+                  "description": "Email atau nomor WhatsApp admin (wajib diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "admin123",
+                  "description": "Password admin (opsional)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login/admin",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login", "admin"]
+            },
+            "description": "## 👨‍💼 Login Admin\n\n### Deskripsi\nLogin khusus untuk admin dengan email/WhatsApp dan password.\n\n### 🔧 Validasi Form Data\n- **contact** (wajib): Email atau nomor WhatsApp admin\n- **password** (opsional): Password admin\n\n### 📤 Response\n- **Success**: Token JWT dan data admin\n- **Error**: Akun tidak ditemukan, password salah, akun tidak aktif\n\n### 💡 Tips\n- Endpoint ini juga akan otomatis menyimpan token\n- Gunakan untuk testing endpoint yang memerlukan role admin\n- Pastikan contact terdaftar sebagai admin di sistem"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test script untuk auto-save token admin\npm.test(\"Status response sukses\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response memiliki struktur data admin\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    if (jsonData.data.user) {",
+                  "        pm.expect(jsonData.data.user).to.have.property('role', 'admin');",
+                  "    }",
+                  "});",
+                  "",
+                  "// Simpan token admin ke collection variable\nif (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set(\"bearer_token\", jsonData.data.token);",
+                  "        console.log(\"✅ Admin token berhasil disimpan: \" + jsonData.data.token);",
+                  "        ",
+                  "        if (jsonData.data.user && jsonData.data.user.id) {",
+                  "            pm.collectionVariables.set(\"admin_id\", jsonData.data.user.id.toString());",
+                  "            console.log(\"✅ Admin ID disimpan: \" + jsonData.data.user.id);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "📧 Login dengan OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email_whatsapp",
+                  "value": "john@example.com",
+                  "description": "Email atau nomor WhatsApp yang terdaftar (wajib diisi)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login-otp",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login-otp"]
+            },
+            "description": "## 📧 Login dengan OTP\n\n### Deskripsi\nLogin menggunakan OTP yang dikirim ke email atau WhatsApp.\n\n### 🔧 Validasi Form Data\n- **email_whatsapp** (wajib): Email atau nomor telepon yang terdaftar\n\n### 📤 Response\n- **Success**: OTP dikirim, user ID dikembalikan\n- **Error**: Akun tidak terdaftar\n\n### 💡 Tips\n- Gunakan setelah menerima OTP\n- User ID yang dikembalikan digunakan untuk verifikasi OTP\n- OTP akan dikirim ke email jika format email valid\n- OTP akan dikirim ke WhatsApp jika format nomor HP"
+          },
+          "response": []
+        },
+        {
+          "name": "🔐 Verifikasi OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "otp",
+                  "value": "123456",
+                  "description": "Kode OTP 6 digit (wajib diisi)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/otp-verify/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "otp-verify", "{{user_id}}"]
+            },
+            "description": "## 🔐 Verifikasi OTP\n\n### Deskripsi\nVerifikasi OTP untuk aktivasi akun atau login.\n\n### 🔧 Validasi Form Data\n- **otp** (wajib): Kode OTP 6 digit\n- **user_id** (path): ID pengguna dari URL\n\n### 📤 Response\n- **Success**: Token JWT dan data user lengkap\n- **Error**: OTP tidak valid atau sudah kadaluarsa\n\n### 💡 Tips\n- OTP master `123456` selalu valid untuk development\n- OTP berlaku selama 5 menit (300 detik)\n- Gunakan user_id dari response login-otp\n- Setelah verifikasi berhasil, token akan otomatis digunakan"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test script untuk auto-save token dari OTP\npm.test(\"Status response sukses\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response memiliki token setelah verifikasi OTP\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "});",
+                  "",
+                  "// Simpan token dari verifikasi OTP\nif (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set(\"bearer_token\", jsonData.data.token);",
+                  "        console.log(\"✅ Token dari OTP berhasil disimpan: \" + jsonData.data.token);",
+                  "        ",
+                  "        if (jsonData.data.user && jsonData.data.user.id) {",
+                  "            pm.collectionVariables.set(\"user_id\", jsonData.data.user.id.toString());",
+                  "            console.log(\"✅ User ID dari OTP disimpan: \" + jsonData.data.user.id);",
+                  "        }",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔄 Lupa Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "contact",
+                  "value": "john@example.com",
+                  "description": "Email atau nomor WhatsApp yang terdaftar (wajib diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "newpassword123",
+                  "description": "Password baru minimal 6 karakter (wajib diisi)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/forget-password",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "forget-password"]
+            },
+            "description": "## 🔄 Lupa Password\n\n### Deskripsi\nMengubah password pengguna tanpa verifikasi OTP.\n\n### 🔧 Validasi Form Data\n- **contact** (wajib): Email atau nomor telepon yang terdaftar\n- **password** (wajib): Password baru minimal 6 karakter\n\n### 📤 Response\n- **Success**: Password berhasil diubah, token baru dibuat\n- **Error**: Akun tidak ditemukan\n\n### 💡 Tips\n- Gunakan jika user lupa password\n- Password baru harus minimal 6 karakter\n- Token baru akan otomatis disimpan setelah berhasil"
+          },
+          "response": []
+        },
+        {
+          "name": "📧 Kirim Email Verifikasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/send-email/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "send-email", "{{user_id}}"]
+            },
+            "description": "## 📧 Kirim Email Verifikasi\n\n### Deskripsi\nMengirim email verifikasi ke pengguna.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna\n\n### 📤 Response\n- **Success**: Email verifikasi berhasil dikirim\n- **Error**: Gagal mengirim email\n\n### 💡 Tips\n- Pastikan user_id valid\n- Periksa konfigurasi email di environment\n- Email berisi link verifikasi akun"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Profile",
+      "description": "Endpoint untuk manajemen profil pengguna (memerlukan autentikasi)",
+      "item": [
+        {
+          "name": "📖 Lihat Profile User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user-profile/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-profile", "{{user_id}}"]
+            },
+            "description": "## 📖 Lihat Profile User\n\n### Deskripsi\nMengambil data profil pengguna berdasarkan user ID.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna\n\n### 📤 Response\n- **Success**: Data profil pengguna lengkap\n- **Error**: Profil tidak ditemukan\n\n### 💡 Tips\n- Gunakan user_id yang sudah disimpan setelah login\n- Response termasuk data profile, gambar, dan informasi pribadi\n- Jika profil belum ada, akan return 404"
+          },
+          "response": []
+        },
+        {
+          "name": "➕ Buat Profile User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe",
+                  "description": "Nama lengkap (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "gender",
+                  "value": "Laki-laki",
+                  "description": "Jenis kelamin (wajib diisi, pilihan: Laki-laki, Perempuan)",
+                  "type": "text"
+                },
+                {
+                  "key": "date_birth",
+                  "value": "1990-01-01",
+                  "description": "Tanggal lahir (wajib diisi, format YYYY-MM-DD)",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "src": [],
+                  "description": "Foto profil (wajib diisi, format: jpeg,png,jpg,gif,webp, max 2MB)",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user-profile/{{user_id}}/create",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-profile", "{{user_id}}", "create"]
+            },
+            "description": "## ➕ Buat Profile User\n\n### Deskripsi\nMembuat profil pengguna baru. Jika profil sudah ada, akan melakukan update.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name** (wajib): Nama lengkap, maksimal 255 karakter\n- **gender** (wajib): Jenis kelamin, pilihan: Laki-laki/Perempuan\n- **date_birth** (wajib): Tanggal lahir, format YYYY-MM-DD\n- **image** (wajib): File gambar, max 2MB, format: jpeg/png/jpg/gif/webp\n\n### 📤 Response\n- **Success**: Profil berhasil dibuat/diupdate\n- **Error**: Validasi gagal, error server\n\n### 💡 Tips\n- Gambar akan otomatis di-convert ke format WebP\n- Nama file otomatis: ImageProfile-{timestamp}.webp\n- Jika profil sudah ada, akan diupdate bukan create baru\n- Gunakan gambar dengan ukuran reasonable untuk optimasi\n\n### 🖼️ Processing Gambar\n1. Gambar di-convert ke WebP untuk optimasi\n2. File disimpan di Minio storage\n3. URL gambar disimpan di database\n4. Gambar lama otomatis dihapus saat update"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update Profile User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "John Doe Updated",
+                  "description": "Nama lengkap (wajib diisi, maksimal 255 karakter)",
+                  "type": "text"
+                },
+                {
+                  "key": "gender",
+                  "value": "Laki-laki",
+                  "description": "Jenis kelamin (wajib diisi, pilihan: Laki-laki, Perempuan)",
+                  "type": "text"
+                },
+                {
+                  "key": "date_birth",
+                  "value": "1990-01-01",
+                  "description": "Tanggal lahir (wajib diisi, format YYYY-MM-DD)",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "john.updated@example.com",
+                  "description": "Email baru (opsional, harus valid email jika diisi)",
+                  "type": "text"
+                },
+                {
+                  "key": "whatsapp",
+                  "value": "+6281234567890",
+                  "description": "Nomor WhatsApp baru (opsional)",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "src": [],
+                  "description": "Foto profil baru (opsional, format: jpeg,png,jpg,gif,webp, max 2MB)",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/user-profile/{{user_id}}/update",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-profile", "{{user_id}}", "update"]
+            },
+            "description": "## ✏️ Update Profile User\n\n### Deskripsi\nMengupdate data profil pengguna termasuk informasi pribadi dan kontak.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Validasi Form Data\n- **name** (wajib): Nama lengkap, maksimal 255 karakter\n- **gender** (wajib): Jenis kelamin, pilihan: Laki-laki/Perempuan\n- **date_birth** (wajib): Tanggal lahir, format YYYY-MM-DD\n- **email** (opsional): Email valid (harus unik)\n- **whatsapp** (opsional): Nomor telepon (harus unik)\n- **image** (opsional): File gambar, max 2MB\n\n### 📤 Response\n- **Success**: Profil berhasil diupdate\n- **Error**: Validasi gagal, email/whatsapp sudah digunakan\n\n### 💡 Tips\n- Email dan WhatsApp harus unik (tidak digunakan user lain)\n- Jika update email, otomatis update di tabel users dan tokens\n- Gambar lama otomatis dihapus dari storage\n- Format gambar akan di-convert ke WebP\n\n### ⚠️ Validasi Unik\n- Email dicek agar tidak digunakan user lain\n- Nomor WhatsApp dicek agar tidak digunakan user lain\n- Jika validasi unik gagal, akan return error 422"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Hapus Profile User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/user-profile/{{user_id}}/delete",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "user-profile", "{{user_id}}", "delete"]
+            },
+            "description": "## 🗑️ Hapus Profile User\n\n### Deskripsi\nMenghapus profil pengguna beserta gambar dari storage.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **user_id** (path): ID pengguna\n\n### 📤 Response\n- **Success**: Profil dan gambar berhasil dihapus\n- **Error**: Profil tidak ditemukan\n\n### 💡 Tips\n- Gambar otomatis dihapus dari Minio storage\n- Hapus record profil dari database\n- Gunakan dengan hati-hati karena tidak bisa di-undo\n- Pastikan user_id yang akan dihapus sudah benar"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script untuk collection Zukses Backend API",
+          "console.log(\"🚀 Zukses Backend API - Pre-Request Script\");",
+          "",
+          "// Log current environment variables",
+          "console.log(\"📍 Base URL: \" + pm.variables.get(\"base_url\"));",
+          "console.log(\"🔑 Token available: \" + (pm.variables.get(\"bearer_token\") ? \"Yes\" : \"No\"));",
+          "",
+          "// Auto-set user_id jika belum ada (contoh untuk testing)",
+          "if (!pm.variables.get(\"user_id\")) {",
+          "    pm.collectionVariables.set(\"user_id\", \"1\");",
+          "    console.log(\"✅ Default user_id set to 1\");",
+          "}",
+          "",
+          "// Validasi base URL",
+          "if (!pm.variables.get(\"base_url\")) {",
+          "    console.log(\"⚠️ Warning: base_url tidak di-set, menggunakan default\");",
+          "    pm.collectionVariables.set(\"base_url\", \"https://your-domain.com\");",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Test script untuk collection Zukses Backend API",
+          "console.log(\"🧪 Zukses Backend API - Test Script\");",
+          "",
+          "// Basic response tests",
+          "pm.test(\"Status code is 2xx or 4xx\", function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 422, 404]);",
+          "});",
+          "",
+          "pm.test(\"Response has JSON content type\", function () {",
+          "    const contentType = pm.response.headers.get(\"Content-Type\");",
+          "    pm.expect(contentType).to.include(\"application/json\");",
+          "});",
+          "",
+          "// Log response info",
+          "console.log(\"📊 Response Status: \" + pm.response.code);",
+          "console.log(\"📊 Response Time: \" + pm.response.responseTime + \"ms\");",
+          "",
+          "// Test for API structure",
+          "try {",
+          "    const jsonData = pm.response.json();",
+          "    ",
+          "    pm.test(\"Response has proper API structure\", function () {",
+          "        pm.expect(jsonData).to.have.property('status');",
+          "        pm.expect(jsonData).to.have.property('message');",
+          "    });",
+          "    ",
+          "    // Log response details",
+          "    console.log(\"✅ Status: \" + jsonData.status);",
+          "    console.log(\"💬 Message: \" + jsonData.message);",
+          "    ",
+          "    if (jsonData.data) {",
+          "        console.log(\"📦 Data keys: \" + Object.keys(jsonData.data).join(\", \"));",
+          "    }",
+          "    ",
+          "    // Specific tests for success responses",
+          "    if (pm.response.code === 200 && jsonData.status === true) {",
+          "        pm.test(\"✅ Success response has proper structure\", function () {",
+          "            pm.expect(jsonData.status).to.be.true;",
+          "        });",
+          "    }",
+          "    ",
+          "    // Specific tests for error responses",
+          "    if (pm.response.code === 422 || pm.response.code === 404) {",
+          "        pm.test(\"❌ Error response has proper structure\", function () {",
+          "            pm.expect(jsonData.status).to.be.false;",
+          "        });",
+          "    }",
+          "    ",
+          "} catch (e) {",
+          "    console.log(\"⚠️ Cannot parse JSON response: \" + e.message);",
+          "}"
+        ]
+      }
+    }
+  ]
+}

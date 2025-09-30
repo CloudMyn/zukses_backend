@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Laravel\Lumen\Auth\Authorizable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Model implements 
-    AuthenticatableContract, 
+class User extends Model implements
+    AuthenticatableContract,
     AuthorizableContract,
     JWTSubject // ⬅️ tambahkan ini
 {
@@ -33,6 +33,10 @@ class User extends Model implements
         'password',
     ];
 
+    protected $with = [
+        'profile',
+    ];
+
     /**
      * JWTSubject method: return identifier (biasanya ID user)
      */
@@ -48,7 +52,12 @@ class User extends Model implements
     {
         return [
             'email' => $this->email,
-            'role'  => $this->role,
+            'role' => $this->role,
         ];
+    }
+
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class, 'user_id');
     }
 }
