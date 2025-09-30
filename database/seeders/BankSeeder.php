@@ -15,48 +15,39 @@ class BankSeeder extends Seeder
     public function run()
     {
         DB::table('banks')->insert([
-            'bank_code' => '009',
-            'bank_name' => 'BNI',
+            'name_bank' => 'BNI',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '014',
-            'bank_name' => 'BCA',
+            'name_bank' => 'BCA',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '008',
-            'bank_name' => 'Mandiri',
-        ]);
-        
-        DB::table('banks')->insert([
-            'bank_code' => '002',
-            'bank_name' => 'BRI',
-        ]);
-        
-        DB::table('banks')->insert([
-            'bank_code' => '200',
-            'bank_name' => 'BTN',
+            'name_bank' => 'Mandiri',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '011',
-            'bank_name' => 'Danamon',
+            'name_bank' => 'BRI',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '426',
-            'bank_name' => 'Mega',
+            'name_bank' => 'BTN',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '022',
-            'bank_name' => 'CIMB Niaga',
+            'name_bank' => 'Danamon',
         ]);
 
         DB::table('banks')->insert([
-            'bank_code' => '022',
-            'bank_name' => 'CIMB Niaga Syariah',
+            'name_bank' => 'Mega',
+        ]);
+
+        DB::table('banks')->insert([
+            'name_bank' => 'CIMB Niaga',
+        ]);
+
+        DB::table('banks')->insert([
+            'name_bank' => 'CIMB Niaga Syariah',
         ]);
     }
 }
