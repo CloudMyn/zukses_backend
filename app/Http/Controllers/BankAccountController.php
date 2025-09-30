@@ -40,10 +40,10 @@ class BankAccountController extends Controller
             });
 
         if ($data->isEmpty()) {
-            return $this->utilityService->is404Response('Data Users tidak ditemukan');
+            return $this->utilityService->is404Response('Data Rekening tidak ditemukan');
         }
 
-        return $this->utilityService->is200ResponseWithData('Data Users ditemukan', $data);
+        return $this->utilityService->is200ResponseWithData('Data Rekening ditemukan', $data);
     }
 
 
@@ -102,9 +102,9 @@ class BankAccountController extends Controller
     {
         $bankAccount = BankAccount::findOrFail($id);
 
-        $bankAccount->bank_id = $request->bank_id;
-        $bankAccount->account_number = $request->account_number;
-        $bankAccount->account_name = $request->account_name;
+        $bankAccount->bank_id = $request->bank_id ?? $bankAccount->bank_id;
+        $bankAccount->account_number = $request->account_number ?? $bankAccount->account_number;
+        $bankAccount->account_name = $request->account_name ?? $bankAccount->account_name;
 
         if ((int)$request->is_primary === 1) {
             // Reset semua Account Bank primary milik user ini

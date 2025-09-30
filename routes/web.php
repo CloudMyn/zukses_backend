@@ -184,7 +184,7 @@ $router->group(['prefix' => 'v1', 'middleware' => 'check-token'], function () us
     });
 
     $router->group(['prefix' => 'bank-accounts'], function () use ($router) {
-        $router->get('/{user_id}/show', 'BankAccountController@index');
+        $router->get('/{user_id}', 'BankAccountController@index');
         $router->post('/{user_id}', 'BankAccountController@store');
         $router->post('/{id}/edit', 'BankAccountController@update');
         $router->delete('/{id}', 'BankAccountController@destroy');

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Zukses Backend API - Koleksi Lengkap",
-    "description": "# 🚀 Zukses Backend API Collection\n\n## 📋 Deskripsi\nKoleksi Postman ini berisi semua endpoint API untuk sistem Zukses Backend termasuk:\n- **🔐 Autentikasi** (Login, Register, OTP, Google OAuth)\n- **👤 User Profile** (Manajemen profil pengguna)\n- **👥 User Management** (Manajemen data pengguna lengkap)\n- **🖼️ Banner Management** (Manajemen banner publik dan admin)\n- **📍 User Address** (Manajemen alamat pengguna)\n- **🏦 Bank Management** (Manajemen bank dan icon)\n\n## 🔐 Autentikasi\nSemua endpoint kecuali endpoint publik memerlukan Bearer Token. Token akan otomatis disimpan setelah login berhasil.\n\n## 📝 Cara Penggunaan\n1. Import file ini ke Postman\n2. Jalankan endpoint **Login User** untuk mendapatkan token\n3. Token akan otomatis digunakan untuk semua endpoint yang memerlukan autentikasi\n4. Gunakan environment variable `{{base_url}}` untuk base URL\n\n## ⚙️ Environment Variables yang Diperlukan\n- `base_url` - URL base API (contoh: https://api.zukses.com)\n- `bearer_token` - Token JWT dari login (otomatis terisi)\n- `user_id` - ID user untuk testing (otomatis terisi setelah login)\n- `banner_id` - ID banner untuk testing (manual input)\n- `address_id` - ID alamat untuk testing (manual input)\n- `bank_id` - ID bank untuk testing (manual input)\n\n## 🛡️ Keamanan\n- Header `Accept: application/json` otomatis ditambahkan\n- Bearer Token otomatis di-set untuk endpoint yang memerlukan autentikasi\n- Form-data validation untuk setiap endpoint\n- File upload security validation\n\n## 📚 Documentation\n- **Auth API**: Lihat file `api-docs/auth.md`\n- **User Management**: Lihat file `api-docs/user-management.md`\n- **Banner Management**: Lihat file `api-docs/banner-management.md`\n- **User Address**: Lihat file `api-docs/user-address.md`\n- **Bank Management**: Lihat file `api-docs/bank-management.md`\n\n## 📞 Support\nUntuk informasi lebih lanjut, hubungi tim development Zukses.",
+    "description": "# 🚀 Zukses Backend API Collection\n\n## 📋 Deskripsi\nKoleksi Postman ini berisi semua endpoint API untuk sistem Zukses Backend termasuk:\n- **🔐 Autentikasi** (Login, Register, OTP, Google OAuth)\n- **👤 User Profile** (Manajemen profil pengguna)\n- **👥 User Management** (Manajemen data pengguna lengkap)\n- **🖼️ Banner Management** (Manajemen banner publik dan admin)\n- **📍 User Address** (Manajemen alamat pengguna)\n- **🏦 Bank Management** (Manajemen bank dan icon)\n- **💳 Bank Account Management** (Manajemen rekening bank pengguna)\n\n## 🔐 Autentikasi\nSemua endpoint kecuali endpoint publik memerlukan Bearer Token. Token akan otomatis disimpan setelah login berhasil.\n\n## 📝 Cara Penggunaan\n1. Import file ini ke Postman\n2. Jalankan endpoint **Login User** untuk mendapatkan token\n3. Token akan otomatis digunakan untuk semua endpoint yang memerlukan autentikasi\n4. Gunakan environment variable `{{base_url}}` untuk base URL\n\n## ⚙️ Environment Variables yang Diperlukan\n- `base_url` - URL base API (contoh: https://api.zukses.com)\n- `bearer_token` - Token JWT dari login (otomatis terisi)\n- `user_id` - ID user untuk testing (otomatis terisi setelah login)\n- `banner_id` - ID banner untuk testing (manual input)\n- `address_id` - ID alamat untuk testing (manual input)\n- `bank_id` - ID bank untuk testing (manual input)\n- `bank_account_id` - ID akun bank untuk testing (manual input)\n\n## 🛡️ Keamanan\n- Header `Accept: application/json` otomatis ditambahkan\n- Bearer Token otomatis di-set untuk endpoint yang memerlukan autentikasi\n- Form-data validation untuk setiap endpoint\n- File upload security validation\n\n## 📚 Documentation\n- **Auth API**: Lihat file `api-docs/auth.md`\n- **User Management**: Lihat file `api-docs/user-management.md`\n- **Banner Management**: Lihat file `api-docs/banner-management.md`\n- **User Address**: Lihat file `api-docs/user-address.md`\n- **Bank Management**: Lihat file `api-docs/bank-management.md`\n- **Bank Account Management**: Lihat file `api-docs/bank-account.md`\n\n## 📞 Support\nUntuk informasi lebih lanjut, hubungi tim development Zukses.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_postman_id": "zukses-backend-api-collection",
     "_exporter_id": "zukses-exporter"
@@ -29,6 +29,11 @@
     },
     {
       "key": "bank_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bank_account_id",
       "value": "",
       "type": "string"
     }
@@ -1711,6 +1716,285 @@
               "path": ["v1", "banks", "{{bank_id}}"]
             },
             "description": "## 🗑️ Delete Bank\n\n### Deskripsi\nMenghapus bank beserta icon dari storage.\n\n### 🔐 Autentikasi\nMemerlukan Bearer Token yang valid.\n\n### 🔧 Parameter\n- **bank_id** (path): ID bank yang akan dihapus\n\n### 📤 Response\n- **Success**: Bank dan icon berhasil dihapus permanen\n- **Error**: Bank tidak ditemukan\n\n### 💡 Tips\n- Icon bank otomatis dihapus dari Minio storage\n- Data bank dihapus permanen dari database\n- Operasi ini tidak dapat dibatalkan\n- Pastikan bank tidak digunakan dalam transaksi aktif\n\n### ⚠️ Warning\n- TIDAK BISA DI-UNDO\n- Bank dan icon akan hilang permanen\n- Pastikan Anda memiliki otoritas untuk menghapus bank\n- Pertimbangkan untuk menonaktifkan bank alih-alih menghapus\n\n### 🔄 Alternative\n- Pertimbangkan soft delete jika diperlukan untuk audit trail\n- Archive data bank yang sudah tidak aktif"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💳 Bank Account Management",
+      "description": "Endpoint untuk manajemen akun bank pengguna (memerlukan autentikasi)",
+      "item": [
+        {
+          "name": "📋 Get User Bank Accounts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{user_id}}"]
+            },
+            "description": "## 📋 Get User Bank Accounts\\n\\n### Deskripsi\\nMengambil semua data akun bank milik pengguna dengan informasi bank lengkap.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Parameter\\n- **user_id** (path): ID pengguna\\n\\n### 📤 Response\\n- **Success**: Daftar akun bank pengguna dengan informasi bank lengkap\\n- **Error**: Pengguna tidak ditemukan atau belum memiliki akun bank\\n\\n### 💡 Tips\\n- Gunakan user_id yang sudah disimpan setelah login\\n- Response termasuk data rekening bank lengkap dengan nama dan icon bank\\n- Berguna untuk halaman profil dan pengaturan pembayaran\\n\\n### 📊 Response Format\\n- **id**: ID unik akun bank\\n- **user_id**: ID pemilik akun bank\\n- **bank_id**: ID bank yang terdaftar di tabel banks\\n- **account_number**: Nomor rekening bank\\n- **account_name**: Nama pemegang rekening\\n- **is_primary**: Status apakah rekening utama (1 = ya, 0 = tidak)\\n- **name_bank**: Nama bank (join dari tabel banks)\\n- **icon**: URL icon bank (join dari tabel banks)"
+          },
+          "response": []
+        },
+        {
+          "name": "➕ Add New Bank Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "bank_id",
+                  "value": "5",
+                  "description": "ID bank yang valid (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "account_number",
+                  "value": "1234567890",
+                  "description": "Nomor rekening (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "account_name",
+                  "value": "John Doe",
+                  "description": "Nama pemegang rekening (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_primary",
+                  "value": "1",
+                  "description": "Status rekening utama (wajib, 0 atau 1)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{user_id}}"]
+            },
+            "description": "## ➕ Add New Bank Account\\n\\n### Deskripsi\\nMenambahkan akun bank baru untuk pengguna dengan opsi untuk menetapkan sebagai rekening utama.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Validasi Form Data\\n- **bank_id** (wajib): ID bank yang valid\\n- **account_number** (wajib): Nomor rekening\\n- **account_name** (wajib): Nama pemegang rekening\\n- **is_primary** (wajib): Status rekening utama (0 atau 1)\\n\\n### 📤 Response\\n- **Success**: Akun bank berhasil ditambahkan, jika `is_primary=1` akun utama sebelumnya akan di-reset\\n- **Error**: Validasi gagal, error server\\n\\n### 💡 Tips\\n- Gunakan bank_id dari response Get All Banks\\n- Jika menambahkan akun dengan `is_primary=1`, sistem akan otomatis mengubah status `is_primary` akun bank lain milik user tersebut menjadi 0\\n- Setiap user hanya boleh memiliki satu akun bank dengan status `is_primary=1`\\n\\n### 🔄 Business Logic\\n- Jika is_primary=1, akun bank lain milik user otomatis di-reset ke is_primary=0\\n- Data yang disimpan di tabel bank_accounts"
+          },
+          "response": []
+        },
+        {
+          "name": "🔍 Get Bank Account by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{bank_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{bank_account_id}}"]
+            },
+            "description": "## 🔍 Get Bank Account by ID\\n\\n### Deskripsi\\nMengambil detail akun bank berdasarkan ID akun.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Parameter\\n- **bank_account_id** (path): ID akun bank yang akan diambil\\n\\n### 📤 Response\\n- **Success**: Detail akun bank ditemukan\\n- **Error**: Akun bank tidak ditemukan\\n\\n### 💡 Tips\\n- Gunakan bank_account_id dari response Get User Bank Accounts\\n- Response termasuk data akun bank lengkap\\n- Berguna untuk edit akun bank di halaman profil\\n\\n### 📊 Response Format\\n- **id**: ID unik akun bank\\n- **user_id**: ID pemilik akun bank\\n- **bank_id**: ID bank yang terdaftar di tabel banks\\n- **account_number**: Nomor rekening bank\\n- **account_name**: Nama pemegang rekening\\n- **is_primary**: Status apakah rekening utama (1 = ya, 0 = tidak)"
+          },
+          "response": []
+        },
+        {
+          "name": "✏️ Update Bank Account Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "bank_id",
+                  "value": "5",
+                  "description": "ID bank yang valid (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "account_number",
+                  "value": "1234567890",
+                  "description": "Nomor rekening (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "account_name",
+                  "value": "John Doe Updated",
+                  "description": "Nama pemegang rekening (wajib)",
+                  "type": "text"
+                },
+                {
+                  "key": "is_primary",
+                  "value": "1",
+                  "description": "Status rekening utama (wajib, 0 atau 1)",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{bank_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{bank_account_id}}"]
+            },
+            "description": "## ✏️ Update Bank Account Data\\n\\n### Deskripsi\\nMemperbarui data akun bank yang sudah ada.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Validasi Form Data\\n- **bank_id** (wajib): ID bank yang valid\\n- **account_number** (wajib): Nomor rekening\\n- **account_name** (wajib): Nama pemegang rekening\\n- **is_primary** (wajib): Status rekening utama (0 atau 1)\\n\\n### 📤 Response\\n- **Success**: Akun bank berhasil diperbarui\\n- **Error**: Akun bank tidak ditemukan, server error\\n\\n### 💡 Tips\\n- Gunakan bank_account_id dari response Get User Bank Accounts\\n- Jika `is_primary=1`, sistem akan mereset semua akun bank lain milik user yang sama menjadi non-utama\\n- Jika `is_primary=0`, akun akan diset sebagai non-utama\\n\\n### 🔄 Business Logic\\n- Jika is_primary=1, semua akun bank lain milik user direset ke is_primary=0\\n- Jika is_primary=0, akun hanya akan diupdate tanpa mempengaruhi akun lain"
+          },
+          "response": []
+        },
+        {
+          "name": "⭐ Set Account as Primary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{bank_account_id}}/is-primary",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{bank_account_id}}", "is-primary"]
+            },
+            "description": "## ⭐ Set Account as Primary\\n\\n### Deskripsi\\nMenetapkan akun bank tertentu sebagai rekening utama.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Parameter\\n- **bank_account_id** (path): ID akun bank yang akan dijadikan utama\\n\\n### 📤 Response\\n- **Success**: Akun bank berhasil ditetapkan sebagai utama, akun utama sebelumnya di-reset\\n- **Error**: Akun bank tidak ditemukan, server error\\n\\n### 💡 Tips\\n- Sistem akan mencari akun bank dengan status `is_primary=1` dan mengubahnya menjadi 0\\n- Kemudian mengubah akun bank yang dipilih menjadi `is_primary=1`\\n- Hanya satu akun bank per user yang bisa memiliki status `is_primary=1`\\n\\n### 🔄 Business Logic\\n- Cari akun bank dengan is_primary=1 milik user yang sama\\n- Reset semua akun bank user tersebut menjadi is_primary=0\\n- Set akun bank yang dipilih menjadi is_primary=1"
+          },
+          "response": []
+        },
+        {
+          "name": "🗑️ Remove Bank Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/bank-accounts/{{bank_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "bank-accounts", "{{bank_account_id}}"]
+            },
+            "description": "## 🗑️ Remove Bank Account\\n\\n### Deskripsi\\nMenghapus akun bank dari sistem.\\n\\n### 🔐 Autentikasi\\nMemerlukan Bearer Token yang valid.\\n\\n### 🔧 Parameter\\n- **bank_account_id** (path): ID akun bank yang akan dihapus\\n\\n### 📤 Response\\n- **Success**: Akun bank berhasil dihapus permanen\\n- **Error**: Akun bank tidak ditemukan\\n\\n### 💡 Tips\\n- Operasi ini tidak dapat dibatalkan (hard delete)\\n- Data akun bank akan dihapus permanen dari database\\n- Pastikan akun yang dihapus bukan satu-satunya akun bank user tersebut\\n\\n### ⚠️ Warning\\n- TIDAK BISA DI-UNDO\\n- Akun bank akan hilang permanen dari database\\n- Pastikan Anda memiliki otoritas untuk menghapus akun bank"
           },
           "response": []
         }
