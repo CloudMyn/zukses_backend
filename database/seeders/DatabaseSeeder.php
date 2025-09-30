@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BuyerSeeder::class);
         $this->call(ProductSeeder::class);
         $this->call([
-            ShippingSeeder::class,
+            // ShippingSeeder::class,
             ChatSeeder::class,
             ChatDemoSeeder::class
         ]);

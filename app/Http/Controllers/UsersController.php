@@ -40,13 +40,15 @@ class UsersController extends Controller
             'birthDate' => 'required|date',
         ]);
 
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
         try {
 
             DB::beginTransaction();
 
-            if ($validator->fails()) {
-                return $this->utilityService->is422Response($validator->errors()->first());
-            }
+
 
             $user = User::where("email", $request->contact)
                 ->orWhere("whatsapp", $request->contact)

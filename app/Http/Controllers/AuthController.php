@@ -296,6 +296,8 @@ class AuthController extends Controller
         $otp = rand(100000, 999999);
         $expiredAt = time() + 600;
 
+        Log::info("🔔 Mengirim OTP via WhatsApp : " . $otp);
+
         $otpUser = DB::table('otps')->where('user_id', $user_id)->first();
         if ($otpUser) {
             $otps = Otp::find($otpUser->id);
@@ -317,7 +319,6 @@ class AuthController extends Controller
             'message' => $message
         ];
 
-        Log::info("🔔 Mengirim OTP via WhatsApp : " . $otp);
 
         $curl = curl_init();
         curl_setopt_array($curl, [
