@@ -1,0 +1,344 @@
+// Database schema for Zukses backend
+// Generated from Laravel migrations
+
+// Core user management
+Table users {
+  id integer [primary key]
+  name string
+  email string
+  password string
+  role string
+  whatsapp biginteger
+  token text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table users_role {
+  id integer [primary key]
+  role string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table users_access_menu {
+  id integer [primary key]
+  role enum [brand owner, reseller, mempelai]
+  menu_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table menus {
+  id integer [primary key]
+  code string
+  name string
+  level string
+  url string
+  icon string [null]
+  order_number string [null]
+  is_active_flag integer
+  parent_name string [null]
+  created_by integer [null]
+  updated_by integer [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// User profiles and addresses
+Table user_profiles {
+  id integer [primary key]
+  user_id integer
+  name string
+  name_store string
+  gender enum [Laki-laki, Perempuan]
+  date_birth date
+  image string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_addresses {
+  id integer [primary key]
+  user_id integer
+  name_receiver string
+  number_receiver string
+  province_id integer
+  citie_id integer
+  subdistrict_id integer
+  postal_code_id integer
+  full_address string
+  label string
+  lat double [null]
+  long double [null]
+  is_primary boolean [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Location data
+Table master_provinces {
+  id integer [primary key]
+  name string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table master_cities {
+  id integer [primary key]
+  province_id integer
+  name string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table master_subdistricts {
+  id integer [primary key]
+  city_id integer
+  name string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table master_postal_codes {
+  id integer [primary key]
+  subdistrict_id integer
+  code string
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Shop management
+Table shop_profiles {
+  id integer [primary key]
+  user_id bigint [unique]
+  shop_name string
+  description text [null]
+  logo_url string [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table shop_addresses {
+  id integer [primary key]
+  shop_profile_id integer
+  name_receiver string
+  number_receiver string
+  province_id integer
+  city_id integer
+  subdistrict_id integer
+  postal_code_id integer
+  full_address string
+  label string [null]
+  lat double [null]
+  long double [null]
+  is_primary boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Product management
+Table product_categories {
+  id integer [primary key]
+  name string
+  parent_id integer [null]
+  url_image string [null]
+  price_admin decimal [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table products {
+  id integer [primary key]
+  seller_id integer
+  category_id integer
+  name string
+  desc string
+  sku string [null]
+  price decimal [null]
+  stock integer [null]
+  min_purchase integer
+  max_purchase integer
+  is_used boolean
+  status string [null]
+  scheduled_date datetime [null]
+  is_cod_enabled boolean [null]
+  voucher string [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_media {
+  id integer [primary key]
+  product_id integer
+  url string
+  ordinal integer
+  type enum [image, video]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_specifications {
+  id integer [primary key]
+  product_id integer
+  brand string
+  country_origin string
+  is_customizable boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_variants {
+  id integer [primary key]
+  product_id integer
+  variant string
+  ordinal integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_variant_prices {
+  id integer [primary key]
+  product_id integer
+  image string
+  price decimal
+  stock integer
+  variant_code string [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Order management
+Table orders {
+  id integer [primary key]
+  order_id string [unique]
+  user_id integer [null]
+  user_profile_id integer [null]
+  total_price decimal(12,2)
+  status string [default: 'pending']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_items {
+  id integer [primary key]
+  order_id bigint
+  product_id bigint
+  variant_id bigint [null]
+  qty integer
+  price decimal(12,2)
+  status string [null]
+  address_id integer [null]
+  courier string [null]
+  resi_order string [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Authentication and security
+Table otps {
+  id integer [primary key]
+  user_id integer
+  otp integer
+  expired_at bigint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table tokens {
+  id integer [primary key]
+  user_id integer
+  token string
+  type string [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Additional features
+Table banners {
+  id integer [primary key]
+  user_id integer [null]
+  admin_id integer [null]
+  title string [null]
+  description text [null]
+  image_url string [null]
+  url string [null]
+  position integer [null]
+  is_active boolean [default: true]
+  start_date datetime [null]
+  end_date datetime [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table banks {
+  id integer [primary key]
+  name string
+  code string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table bank_accounts {
+  id integer [primary key]
+  user_id integer
+  bank_id integer
+  account_name string
+  account_number string
+  is_primary boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table couriers {
+  id integer [primary key]
+  name string
+  code string
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table courier_services {
+  id integer [primary key]
+  courier_id integer
+  name string
+  code string
+  type string
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Relationships
+Ref: users.id < user_profiles.user_id
+Ref: users.id < user_addresses.user_id
+Ref: users.id < shop_profiles.user_id
+Ref: users.id < otps.user_id
+Ref: users.id < tokens.user_id
+Ref: users.id < orders.user_id
+
+Ref: master_provinces.id < master_cities.province_id
+Ref: master_cities.id < user_addresses.citie_id
+Ref: master_cities.id < shop_addresses.city_id
+Ref: master_subdistricts.id < user_addresses.subdistrict_id
+Ref: master_subdistricts.id < shop_addresses.subdistrict_id
+Ref: master_subdistricts.id < master_postal_codes.subdistrict_id
+Ref: master_postal_codes.id < user_addresses.postal_code_id
+Ref: master_postal_codes.id < shop_addresses.postal_code_id
+
+Ref: product_categories.id < products.category_id
+Ref: products.id < product_media.product_id
+Ref: products.id < product_specifications.product_id
+Ref: products.id < product_variants.product_id
+Ref: products.id < product_variant_prices.product_id
+Ref: products.id < order_items.product_id
+
+Ref: product_variants.id < order_items.variant_id
+
+Ref: shop_profiles.id < shop_addresses.shop_profile_id
+
+Ref: orders.id < order_items.order_id
+
+Ref: banks.id < bank_accounts.bank_id
+Ref: users.id < bank_accounts.user_id
+
+Ref: couriers.id < courier_services.courier_id

@@ -41,7 +41,7 @@ $router->get('/v1/auth/google/callback', 'UsersController@handleGoogleCallback')
 
 // $router->get('/v1/auth/me', 'UsersController@getMe');
 
-// $router->post('/transaction/callback', 'TransactionController@callback');
+// $router->post('/transaction/callback', 'TransactionController@callback');x
 
 //auth new
 // $router->get('/v1/auth/google-zukses', 'AuthController@redirectToGoogle');
@@ -357,6 +357,14 @@ $router->get('orders-items/by-seller/{order_id}/{seller_id}', 'OrderController@s
 $router->group(['prefix' => 'v1/midtrans'], function () use ($router) {
     $router->post('/check-account', 'MidtransAccountController@checkAccount');
     $router->get('/supported-banks', 'MidtransAccountController@getSupportedBanks');
+});
+
+// Chat API routes
+$router->group(['prefix' => 'v1/chat', 'middleware' => 'check-token'], function () use ($router) {
+    $router->get('/conversations', 'ChatController@getConversations');
+    $router->get('/conversations/{id}/messages', 'ChatController@getMessages');
+    $router->post('/messages', 'ChatController@sendMessage');
+    $router->post('/conversations', 'ChatController@createConversation');
 });
 
 // Command execution routes (admin only)
