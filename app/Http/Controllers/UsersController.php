@@ -48,8 +48,6 @@ class UsersController extends Controller
 
             DB::beginTransaction();
 
-
-
             $user = User::where("email", $request->contact)
                 ->orWhere("whatsapp", $request->contact)
                 ->first();
@@ -108,16 +106,10 @@ class UsersController extends Controller
                     'gender' => $request->gender,
                     'date_birth' => $request->birthDate,
                 ];
+
                 UserProfile::create($dataProfile);
 
-                $dataWithoutPassword = [
-                    'username' => $randomString,
-                    "name" => $request->fullName,
-                    "email" => !$isEmail ? $request->contact : $user->email,
-                    'id' => $user->id,
-                    "role" => $request->role,
-                    "whatsapp" => $isEmail ? null : $request->contact,
-                ];
+
                 $contact = $request->contact;
                 $password = env('PASSWORD_DEFAULT');
 
@@ -129,6 +121,7 @@ class UsersController extends Controller
                     $fieldType => $contact,
                     'password' => $password,
                 ];
+
                 $token = Auth::guard('users')->attempt($credentials);
                 // Untuk token, gunakan email user yang valid dari database
                 // Jika contact adalah nomor telepon, gunakan email dari user
@@ -140,6 +133,19 @@ class UsersController extends Controller
                     'is_active' => 0
                 ]);
 
+
+                $dataWithoutPassword = [
+                    "role" => $request->role,
+                    "id" => $user->id,
+                    "email" => $user->email,
+                    "phoneNumber" => $user->whatsapp,
+                    "name" => $user->name,
+                    "alamat" => $user->alamat,
+                    "gender" => $user->gender,
+                    "birthDate" => $user->birthDate,
+                    "profile" => $dataProfile,
+                    "authToken" => $token
+                ];
                 DB::commit();
 
                 return $this->respondWithToken($token, $dataWithoutPassword);
@@ -235,7 +241,7 @@ class UsersController extends Controller
             $response = curl_exec($curl);
             curl_close($curl);
 
-            return $this->utilityService->is200Response("OTP berhasil dikirim ke WhatsApp.");
+            return $this->utilityService->is200Response("OTP berhasil dikirim ke WhatsApp. " . $otp);
         }
     }
     public function checkAccountPassword(Request $request)

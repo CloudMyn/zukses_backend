@@ -34,6 +34,27 @@ class UserAddressController extends Controller
     }
     public function create(Request $request, $user_id)
     {
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'name_receiver' => 'required|string|max:255',
+            'number_receiver' => 'required|string|max:20',
+            'province_name' => 'required|string|max:255',
+            'city_name' => 'required|string|max:255',
+            'subdistrict_name' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+            'full_address' => 'required|string',
+            'detail_address' => 'nullable|string',
+            'lat' => 'required|numeric|between:-90,90',
+            'long' => 'required|numeric|between:-180,180',
+            'is_primary' => 'required|boolean',
+            'is_store' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
+        // Set alamat primary jika diinginkan
         if ($request->is_primary == 1) {
             $userAddress = DB::table('user_addresses')->where('is_primary', 1)->where('user_id', $user_id)->first();
             if ($userAddress) {
@@ -43,66 +64,49 @@ class UserAddressController extends Controller
             }
         }
 
-        $input = $request->full_location;
-
-        // Pisahkan berdasarkan koma
-        $parts = explode(',', $input);
-
-        // Ambil bagian kecamatan (asumsi urutan ke-3) dan kode pos (terakhir)
-        $kecamatanRaw = isset($parts[2]) ? trim($parts[2]) : '';
-        $kodePosInput = isset($parts[3]) ? trim($parts[3]) : '';
-
-        // Hilangkan kata "KECAMATAN" jika ada, dan kecilkan hurufnya
-        $kecamatan = strtolower(str_replace('KECAMATAN ', '', $kecamatanRaw));
-
-        $dataKecamatan = DB::table('master_subdistricts')
-            ->where('name', 'LIKE', '' . $kecamatan . '')
+        // Cari provinsi berdasarkan nama
+        $province = DB::table('master_provinces')
+            ->where('name', 'LIKE', '%' . trim($request->province_name) . '%')
             ->first();
-
-
-        if (!$dataKecamatan) {
-            return $this->utilityService->is422Response('Kecamatan tidak ditemukan');
+        if (!$province) {
+            return $this->utilityService->is422Response('Provinsi tidak ditemukan: ' . $request->province_name);
         }
 
-        // Cari kode pos berdasarkan subdistrict_id
-        $kodePos = DB::table('master_postal_codes')
-            ->where('subdistrict_id', $dataKecamatan->id)
-            ->where('code', $kodePosInput) // pastikan cocok juga dengan input kode pos
+        // Cari kota berdasarkan nama dan provinsi
+        $city = DB::table('master_cities')
+            ->where('name', 'LIKE', '%' . trim($request->city_name) . '%')
+            ->where('province_id', $province->id)
             ->first();
-
-        if (!$kodePos) {
-            return $this->utilityService->is422Response('Kode pos tidak ditemukan');
+        if (!$city) {
+            return $this->utilityService->is422Response('Kota tidak ditemukan: ' . $request->city_name);
         }
 
-        // Cari kota
-        $kota = DB::table('master_cities')
-            ->where('id', $dataKecamatan->city_id)
+        // Cari subdistrict berdasarkan nama dan kota
+        $subdistrict = DB::table('master_subdistricts')
+            ->where('name', 'LIKE', '%' . trim($request->subdistrict_name) . '%')
+            ->where('city_id', $city->id)
             ->first();
-
-        if (!$kota) {
-            return response()->json(['error' => 'Kota tidak ditemukan'], 404);
+        if (!$subdistrict) {
+            return $this->utilityService->is422Response('Kecamatan tidak ditemukan: ' . $request->subdistrict_name);
         }
 
-        if (!$kota) {
-            return $this->utilityService->is422Response('Kota tidak ditemukan');
-        }
-
-        // Cari provinsi
-        $prov = DB::table('master_provinces')
-            ->where('id', $kota->province_id)
+        // Cari kode pos berdasarkan kode dan subdistrict
+        $postalCode = DB::table('master_postal_codes')
+            ->where('code', trim($request->postal_code))
+            ->where('subdistrict_id', $subdistrict->id)
             ->first();
-
-        if (!$prov) {
-            return $this->utilityService->is422Response('Provinsi tidak ditemukan');
+        if (!$postalCode) {
+            return $this->utilityService->is422Response('Kode pos tidak ditemukan: ' . $request->postal_code);
         }
+
         $data = [
             'user_id' => $user_id,
             'name_receiver' => $request->name_receiver,
             'number_receiver' => $request->number_receiver,
-            'province_id' => $prov->id,
-            'citie_id' => $kota->id,
-            'subdistrict_id' => $dataKecamatan->id,
-            'postal_code_id' => $kodePos->id,
+            'province_id' => $province->id,
+            'citie_id' => $city->id,
+            'subdistrict_id' => $subdistrict->id,
+            'postal_code_id' => $postalCode->id,
             'full_address' => $request->full_address,
             'detail_address' => $request->detail_address,
             'lat' => $request->lat,
@@ -110,8 +114,10 @@ class UserAddressController extends Controller
             'is_primary' => $request->is_primary,
             'is_store' => $request->is_store,
         ];
+
         $insert = UserAddress::create($data);
         $data = $insert->fresh();
+
         if ($insert) {
             $success_message = "Data Berhasil Ditambahkan";
             return $this->utilityService->is200ResponseWithData($success_message, $data);
@@ -128,6 +134,27 @@ class UserAddressController extends Controller
             return $this->utilityService->is404Response("Alamat tidak ditemukan");
         }
 
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'name_receiver' => 'required|string|max:255',
+            'number_receiver' => 'required|string|max:20',
+            'province_name' => 'required|string|max:255',
+            'city_name' => 'required|string|max:255',
+            'subdistrict_name' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+            'full_address' => 'required|string',
+            'detail_address' => 'nullable|string',
+            'lat' => 'required|numeric|between:-90,90',
+            'long' => 'required|numeric|between:-180,180',
+            'is_primary' => 'required|boolean',
+            'is_store' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->utilityService->is422Response($validator->errors()->first());
+        }
+
+        // Set alamat primary jika diinginkan
         if ($request->is_primary == 1) {
             // Reset semua alamat primary milik user ini
             if ($address->is_primary != 1) {
@@ -135,72 +162,58 @@ class UserAddressController extends Controller
                     ->where('is_primary', 1)
                     ->update(['is_primary' => 0]);
             }
-
             $address->is_primary = 1;
         } else {
             $address->is_primary = 0;
         }
-        $input = $request->full_location;
 
-        // Pisahkan berdasarkan koma
-        $parts = explode(',', $input);
-
-        // Ambil bagian kecamatan (asumsi urutan ke-3) dan kode pos (terakhir)
-        $kecamatanRaw = isset($parts[2]) ? trim($parts[2]) : '';
-        $kodePosInput = isset($parts[3]) ? trim($parts[3]) : '';
-
-        // Hilangkan kata "KECAMATAN" jika ada, dan kecilkan hurufnya
-        $kecamatan = strtolower(str_replace('KECAMATAN ', '', $kecamatanRaw));
-
-        $dataKecamatan = DB::table('master_subdistricts')
-            ->where('name', 'LIKE', '' . $kecamatan . '')
+        // Cari provinsi berdasarkan nama
+        $province = DB::table('master_provinces')
+            ->where('name', 'LIKE', '%' . trim($request->province_name) . '%')
             ->first();
-
-
-        if (!$dataKecamatan) {
-            return response()->json(['error' => 'Kecamatan tidak ditemukan'], 404);
+        if (!$province) {
+            return $this->utilityService->is422Response('Provinsi tidak ditemukan: ' . $request->province_name);
         }
 
-        // Cari kode pos berdasarkan subdistrict_id
-        $kodePos = DB::table('master_postal_codes')
-            ->where('subdistrict_id', $dataKecamatan->id)
-            ->where('code', $kodePosInput) // pastikan cocok juga dengan input kode pos
+        // Cari kota berdasarkan nama dan provinsi
+        $city = DB::table('master_cities')
+            ->where('name', 'LIKE', '%' . trim($request->city_name) . '%')
+            ->where('province_id', $province->id)
             ->first();
-
-        if (!$kodePos) {
-            return response()->json(['error' => 'Kode pos tidak ditemukan'], 404);
+        if (!$city) {
+            return $this->utilityService->is422Response('Kota tidak ditemukan: ' . $request->city_name);
         }
 
-        // Cari kota
-        $kota = DB::table('master_cities')
-            ->where('id', $dataKecamatan->city_id)
+        // Cari subdistrict berdasarkan nama dan kota
+        $subdistrict = DB::table('master_subdistricts')
+            ->where('name', 'LIKE', '%' . trim($request->subdistrict_name) . '%')
+            ->where('city_id', $city->id)
             ->first();
-
-        if (!$kota) {
-            return response()->json(['error' => 'Kota tidak ditemukan'], 404);
+        if (!$subdistrict) {
+            return $this->utilityService->is422Response('Kecamatan tidak ditemukan: ' . $request->subdistrict_name);
         }
 
-        // Cari provinsi
-        $prov = DB::table('master_provinces')
-            ->where('id', $kota->province_id)
+        // Cari kode pos berdasarkan kode dan subdistrict
+        $postalCode = DB::table('master_postal_codes')
+            ->where('code', trim($request->postal_code))
+            ->where('subdistrict_id', $subdistrict->id)
             ->first();
-
-        if (!$prov) {
-            return response()->json(['error' => 'Provinsi tidak ditemukan'], 404);
+        if (!$postalCode) {
+            return $this->utilityService->is422Response('Kode pos tidak ditemukan: ' . $request->postal_code);
         }
 
+        // Update data alamat
         $address->name_receiver = $request->name_receiver;
         $address->number_receiver = $request->number_receiver;
-        $address->province_id = $prov->id;
-        $address->citie_id = $kota->id;
-        $address->subdistrict_id = $dataKecamatan->id;
-        $address->postal_code_id = $kodePos->id;
+        $address->province_id = $province->id;
+        $address->citie_id = $city->id;
+        $address->subdistrict_id = $subdistrict->id;
+        $address->postal_code_id = $postalCode->id;
         $address->full_address = $request->full_address;
         $address->detail_address = $request->detail_address;
         $address->lat = $request->lat;
         $address->long = $request->long;
         $address->is_store = $request->is_store;
-
 
         if ($address->save()) {
             $success_message = "Data Berhasil Diupdate";
